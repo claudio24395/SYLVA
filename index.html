@@ -1,0 +1,3921 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sylva — Atelier Botanico, Foresta Esplorabile & Studio</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Fraunces, Newsreader & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Fraunces"', '"Newsreader"', 'Georgia', 'serif'],
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            paper: {
+              DEFAULT: '#F7F5F0',
+              warm: '#EFECE4',
+              card: '#FCFBF8',
+              border: '#E2DDD2',
+            },
+            sage: {
+              900: '#2A312B',
+              800: '#39453B',
+              700: '#4E6B53',
+              600: '#5C665E',
+              500: '#76967B',
+              400: '#8AA38D',
+              200: '#DCE5DD',
+              100: '#EDF2EE',
+            },
+            wood: {
+              DEFAULT: '#B8A48E',
+              light: '#D8CBB8',
+              dark: '#8C7862',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --bg-paper: #F7F5F0;
+      --ink-main: #2A312B;
+      --ink-secondary: #5C665E;
+      --sage-primary: #4E6B53;
+    }
+
+    body {
+      background-color: var(--bg-paper);
+      color: var(--ink-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    .editorial-panel {
+      background: #FCFBF8;
+      border: 1px solid #E2DDD2;
+      box-shadow: 0 8px 30px rgba(42, 49, 43, 0.04);
+    }
+
+    .editorial-card {
+      background: #EFECE4;
+      border: 1px solid #E2DDD2;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .editorial-card:hover {
+      border-color: #B8A48E;
+      box-shadow: 0 6px 20px rgba(42, 49, 43, 0.05);
+    }
+
+    input[type="range"].botanical-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      background: #DCE5DD;
+      border-radius: 999px;
+      outline: none;
+    }
+    input[type="range"].botanical-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #4E6B53;
+      cursor: pointer;
+      border: 2px solid #FCFBF8;
+      box-shadow: 0 1px 4px rgba(42, 49, 43, 0.25);
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #F7F5F0; }
+    ::-webkit-scrollbar-thumb { background: #D8CBB8; border-radius: 999px; }
+
+    .tab-content { display: none; animation: fadeUp 0.3s ease forwards; }
+    .tab-content.active { display: block; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .quote-fade {
+      transition: opacity 1.3s ease-in-out, transform 1.3s ease-in-out;
+    }
+    .quote-hidden { opacity: 0; transform: translateY(6px); }
+    .quote-visible { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body class="selection:bg-sage-200 selection:text-sage-900">
+
+  <!-- Toast Notifiche Minimal -->
+  <div id="toast-container" class="fixed top-4 right-4 z-[95] flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- =======================================================================
+       1. SCHERMATA FULLSCREEN ZEN ASSOLUTO (SOLO BOSCO CHE CRESCE + FRASI)
+       ======================================================================= -->
+  <div id="zen-fullscreen-overlay" class="fixed inset-0 z-[60] hidden bg-[#EAE6DC] select-none overflow-hidden">
+    <canvas id="zen-canvas" class="w-full h-full block"></canvas>
+
+    <!-- Indicatore Sussurrato Radura Condivisa (se attiva) -->
+    <div id="zen-room-whisper" class="hidden pointer-events-none absolute top-5 inset-x-0 flex justify-center px-4">
+      <div class="px-4 py-1.5 rounded-full bg-paper-card/85 backdrop-blur-md border border-paper-border text-xs text-sage-800 flex items-center gap-2 shadow-sm">
+        <span class="w-1.5 h-1.5 rounded-full bg-sage-700 animate-pulse"></span>
+        <span id="zen-room-label">Radura Condivisa • 3 Compagni presenti</span>
+      </div>
+    </div>
+
+    <!-- Frase Poeticamente Contemplativa -->
+    <div class="pointer-events-none absolute inset-x-0 top-[9%] sm:top-[11%] px-6 flex flex-col items-center text-center">
+      <p id="zen-quote-text" class="quote-fade quote-visible font-serif italic text-2xl sm:text-4xl md:text-[40px] text-sage-900 max-w-3xl leading-snug">
+        «Le radici profonde non temono il gelo; ogni minuto di silenzio nutre la tua foresta interiore.»
+      </p>
+      <span id="zen-quote-author" class="quote-fade quote-visible mt-3 text-xs uppercase tracking-[0.22em] text-wood-dark font-semibold">
+        Sylva • Contemplazione
+      </span>
+    </div>
+
+    <!-- Barra Inferiore Sussurrata -->
+    <div class="absolute bottom-6 inset-x-0 px-6 flex items-center justify-between max-w-4xl mx-auto">
+      <button id="zen-btn-mute" class="p-3 rounded-full bg-paper-card/80 hover:bg-paper-card backdrop-blur-md border border-paper-border text-sage-700 transition shadow-sm" title="Silenzia / Attiva Suoni">
+        <i data-lucide="volume-2" class="w-4 h-4"></i>
+      </button>
+
+      <div class="px-6 py-2 rounded-full bg-paper-card/85 backdrop-blur-md border border-paper-border flex items-center gap-3 text-sage-900 shadow-sm">
+        <span class="w-2 h-2 rounded-full bg-sage-700 animate-pulse"></span>
+        <span id="zen-timer-text" class="font-serif text-xl sm:text-2xl font-semibold tracking-wider tabular-nums">25:00</span>
+      </div>
+
+      <button id="zen-btn-abandon" class="px-4 py-2.5 rounded-full bg-paper-card/80 hover:bg-red-50 backdrop-blur-md border border-paper-border hover:border-red-300 text-xs font-medium text-sage-800 hover:text-red-700 transition shadow-sm">
+        Abbandona
+      </button>
+    </div>
+
+    <!-- Conferma Abbandono -->
+    <div id="zen-confirm-abandon" class="hidden absolute inset-0 z-20 bg-sage-900/40 backdrop-blur-sm items-center justify-center p-4">
+      <div class="editorial-panel rounded-3xl max-w-md w-full p-7 text-center">
+        <i data-lucide="alert-circle" class="w-9 h-9 text-wood-dark mx-auto mb-3"></i>
+        <h3 class="font-serif text-3xl font-semibold text-sage-900 mb-2">Interrompere la crescita?</h3>
+        <p class="text-sm text-sage-600 leading-relaxed mb-6">
+          Se abbandoni ora, la specie che stai coltivando appassirà e verrà salvata come esemplare appassito nella tua foresta.
+        </p>
+        <div class="flex gap-3">
+          <button id="zen-cancel-abandon" class="flex-1 py-3 rounded-2xl bg-sage-700 hover:bg-sage-800 text-paper-card font-semibold transition">
+            Continua a Studiare
+          </button>
+          <button id="zen-confirm-giveup" class="px-5 py-3 rounded-2xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-semibold transition">
+            Arrenditi
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       2. VISTA PANORAMICA IMMERSIVA DELLA FORESTA (SCHERMO INTERO ESPLORABILE)
+       ======================================================================= -->
+  <div id="panoramic-forest-overlay" class="fixed inset-0 z-[65] hidden bg-[#EAE6DC] select-none overflow-hidden">
+    <canvas id="panoramic-forest-canvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+
+    <div class="absolute top-5 inset-x-0 px-6 flex items-center justify-between max-w-6xl mx-auto pointer-events-none">
+      <div class="px-5 py-2.5 rounded-2xl bg-paper-card/90 backdrop-blur-md border border-paper-border pointer-events-auto shadow-sm">
+        <span class="text-[10px] uppercase tracking-[0.22em] text-wood-dark font-bold block">Passeggiata nella Riserva</span>
+        <h3 class="font-serif text-xl sm:text-2xl font-semibold text-sage-900">La Tua Foresta Esplorabile</h3>
+      </div>
+
+      <div class="flex items-center gap-2 pointer-events-auto">
+        <button id="pano-btn-audio" class="px-4 py-2.5 rounded-2xl bg-paper-card/90 hover:bg-paper-card backdrop-blur-md border border-paper-border text-xs font-semibold text-sage-900 flex items-center gap-2 transition shadow-sm">
+          <i data-lucide="volume-2" class="w-4 h-4 text-sage-700"></i>
+          <span>Suoni & Canti</span>
+        </button>
+        <button id="pano-btn-close" class="px-4 py-2.5 rounded-2xl bg-sage-700 hover:bg-sage-800 text-xs font-semibold text-paper-card flex items-center gap-1.5 transition shadow-sm">
+          <i data-lucide="minimize-2" class="w-4 h-4"></i>
+          <span>Torna all'Atelier</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="absolute bottom-6 right-6 flex items-center gap-1.5 bg-paper-card/90 backdrop-blur-md p-1.5 rounded-2xl border border-paper-border shadow-sm">
+      <button id="pano-step-left" class="p-2.5 rounded-xl hover:bg-paper-warm text-sage-800 transition" title="Cammina a Sinistra">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+      </button>
+      <button id="pano-zoom-out" class="p-2.5 rounded-xl hover:bg-paper-warm text-sage-800 transition" title="Riduci Zoom">
+        <i data-lucide="zoom-out" class="w-4 h-4"></i>
+      </button>
+      <button id="pano-reset-view" class="px-3 py-1.5 rounded-xl hover:bg-paper-warm text-xs font-semibold text-sage-700 transition" title="Centra Sentiero">
+        Centra
+      </button>
+      <button id="pano-zoom-in" class="p-2.5 rounded-xl hover:bg-paper-warm text-sage-800 transition" title="Ingrandisci">
+        <i data-lucide="zoom-in" class="w-4 h-4"></i>
+      </button>
+      <button id="pano-step-right" class="p-2.5 rounded-xl hover:bg-paper-warm text-sage-800 transition" title="Cammina a Destra">
+        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <div class="hidden sm:block absolute bottom-6 left-6 pointer-events-none">
+      <span class="px-4 py-2 rounded-full bg-paper-card/85 backdrop-blur-md border border-paper-border text-xs text-sage-800 shadow-sm">
+        Trascina il sentiero per esplorare • Rotellina per zoomare • Clicca su alberi, piante, funghi o uccelli
+      </span>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       3. MODAL SCHEDA BOTANICA, MICOLOGICA & ORNITOLOGICA (CON DETTAGLI SESSIONE)
+       ======================================================================= -->
+  <div id="encyclopedia-modal" class="fixed inset-0 z-[75] hidden items-center justify-center bg-sage-900/45 backdrop-blur-sm p-4 overflow-y-auto">
+    <div class="editorial-panel rounded-3xl max-w-3xl w-full overflow-hidden my-auto shadow-2xl">
+      <div class="grid grid-cols-1 sm:grid-cols-12 bg-paper-warm border-b border-paper-border">
+        <div class="sm:col-span-7 relative h-56 sm:h-72 overflow-hidden bg-sage-100">
+          <img id="enc-photo" src="" alt="" class="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105" />
+          <div id="enc-photo-fallback" class="hidden w-full h-full items-center justify-center bg-sage-100 text-sage-700 text-sm p-6 text-center">
+            Tavola fotografica offline — Consulta l'illustrazione scientifica a fianco.
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-sage-900/75 via-sage-900/15 to-transparent"></div>
+          <div class="absolute bottom-4 left-5 right-5">
+            <span id="enc-category-badge" class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-paper-card/90 text-sage-800">
+              Albero
+            </span>
+            <h3 id="enc-name" class="font-serif text-3xl font-semibold text-paper-card mt-1.5 leading-tight">
+              Faggio Appenninico
+            </h3>
+            <p id="enc-latin" class="font-serif italic text-sm text-paper-warm/90">Fagus sylvatica L.</p>
+          </div>
+        </div>
+
+        <div class="sm:col-span-5 relative h-48 sm:h-72 bg-[#F3F0E8] border-t sm:border-t-0 sm:border-l border-paper-border">
+          <canvas id="enc-specimen-canvas" class="w-full h-full block"></canvas>
+          <span id="enc-plate-label" class="absolute bottom-2.5 left-3 text-[10px] uppercase tracking-widest text-sage-800 bg-paper-card/85 border border-paper-border px-2.5 py-0.5 rounded-full">
+            Tavola Botanica
+          </span>
+          <button id="close-enc-modal" class="absolute top-3 right-3 p-2 rounded-full bg-paper-card/90 hover:bg-paper-card text-sage-900 border border-paper-border transition shadow-sm">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="p-6 sm:p-7 space-y-4 max-h-[65vh] overflow-y-auto bg-paper-card">
+        <div id="enc-session-origin-box" class="hidden p-4 rounded-2xl bg-sage-100 border border-sage-200 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-sage-700 text-paper-card flex items-center justify-center shrink-0">
+              <i data-lucide="sprout" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <span class="text-[10px] uppercase tracking-widest text-sage-700 font-bold block">Esemplare nella Tua Foresta</span>
+              <p id="enc-session-origin-text" class="text-xs sm:text-sm font-semibold text-sage-900">
+                Piantato durante "Studio Profondo" (25 minuti) • 21 Nov
+              </p>
+            </div>
+          </div>
+          <span id="enc-session-status-badge" class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-paper-card text-sage-800 border border-paper-border">
+            Fiorito & Vivo
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
+          <div class="editorial-card p-2.5 rounded-2xl">
+            <div class="text-[10px] uppercase tracking-wider text-wood-dark font-semibold">Famiglia</div>
+            <div id="enc-family" class="text-xs font-semibold text-sage-900 mt-0.5">Fagaceae</div>
+          </div>
+          <div class="editorial-card p-2.5 rounded-2xl">
+            <div id="enc-meta2-label" class="text-[10px] uppercase tracking-wider text-wood-dark font-semibold">Altitudine & Habitat</div>
+            <div id="enc-altitude" class="text-xs font-semibold text-sage-900 mt-0.5">600 – 1.800 m</div>
+          </div>
+          <div class="editorial-card p-2.5 rounded-2xl">
+            <div id="enc-meta3-label" class="text-[10px] uppercase tracking-wider text-wood-dark font-semibold">Fenologia</div>
+            <div id="enc-phenology" class="text-xs font-semibold text-sage-900 mt-0.5">Apr – Ott</div>
+          </div>
+          <div class="editorial-card p-2.5 rounded-2xl">
+            <div class="text-[10px] uppercase tracking-wider text-wood-dark font-semibold">Collezione</div>
+            <div id="enc-status-pill" class="text-xs font-bold text-sage-700 mt-0.5">Sbloccata</div>
+          </div>
+        </div>
+
+        <div class="editorial-card p-4 rounded-2xl">
+          <h4 class="font-serif text-lg font-semibold text-sage-900 flex items-center gap-2 mb-1">
+            <i data-lucide="microscope" class="w-4 h-4 text-sage-700"></i>
+            <span id="enc-sec1-title">Morfologia & Caratteri Diagnostici</span>
+          </h4>
+          <p id="enc-morphology" class="text-xs sm:text-sm text-sage-600 leading-relaxed"></p>
+        </div>
+
+        <div class="editorial-card p-4 rounded-2xl">
+          <h4 class="font-serif text-lg font-semibold text-sage-900 flex items-center gap-2 mb-1">
+            <i data-lucide="trees" class="w-4 h-4 text-sage-700"></i>
+            <span id="enc-sec2-title">Ecologia, Habitat & Simbiosi</span>
+          </h4>
+          <p id="enc-ecology" class="text-xs sm:text-sm text-sage-600 leading-relaxed"></p>
+        </div>
+
+        <div class="editorial-card p-4 rounded-2xl">
+          <h4 class="font-serif text-lg font-semibold text-sage-900 flex items-center gap-2 mb-1">
+            <i data-lucide="book-marked" class="w-4 h-4 text-wood-dark"></i>
+            <span id="enc-sec3-title">Note Naturalistiche & Curiosità</span>
+          </h4>
+          <p id="enc-ethnobotany" class="text-xs sm:text-sm text-sage-600 leading-relaxed"></p>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-end gap-3 pt-1">
+          <button id="enc-bird-sing-btn" class="hidden px-5 py-3 rounded-2xl bg-sage-100 hover:bg-sage-200 border border-sage-200 text-sage-900 font-semibold text-sm flex items-center gap-2 transition">
+            <i data-lucide="volume-2" class="w-4 h-4 text-sage-700"></i>
+            <span>Ascolta il Canto</span>
+          </button>
+          <button id="enc-action-btn" class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-sage-700 hover:bg-sage-800 text-paper-card font-semibold text-sm transition">
+            Coltiva nella Prossima Sessione
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       4. MODAL GUIDA SCUDO NOTIFICHE & CHIAMATE
+       ======================================================================= -->
+  <div id="dnd-guide-modal" class="fixed inset-0 z-[75] hidden items-center justify-center bg-sage-900/45 backdrop-blur-sm p-4">
+    <div class="editorial-panel rounded-3xl max-w-lg w-full p-6 sm:p-8">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="p-2.5 rounded-xl bg-sage-100 text-sage-700">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <h3 class="font-serif text-2xl font-semibold text-sage-900">Silenzio App & Chiamate</h3>
+        </div>
+        <button id="close-dnd-modal" class="p-2 rounded-xl hover:bg-paper-warm text-sage-800">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <p class="text-sm text-sage-600 leading-relaxed mb-4">
+        All'avvio della sessione, Sylva passa in <strong>Schermo Intero Zen</strong> e monitora la tua permanenza. Per silenziare le notifiche esterne lasciando passare le chiamate:
+      </p>
+      <div class="space-y-3 text-xs sm:text-sm text-sage-900 mb-6">
+        <div class="editorial-card p-3.5 rounded-2xl flex items-start gap-3">
+          <span class="font-bold text-sage-700">1.</span>
+          <div><strong>Full Immersion / Non Disturbare:</strong> Attiva il <em>Non Disturbare</em> del telefono per silenziare messaggi e social durante lo studio.</div>
+        </div>
+        <div class="editorial-card p-3.5 rounded-2xl flex items-start gap-3">
+          <span class="font-bold text-sage-700">2.</span>
+          <div><strong>Whitelist Chiamate (+15% Linfa):</strong> Mantieni attivo l'interruttore <em>Consenti Chiamate Emergenza</em> per ottenere Semi di Linfa extra.</div>
+        </div>
+        <div class="editorial-card p-3.5 rounded-2xl flex items-center justify-between gap-3">
+          <span class="text-xs text-sage-600">Simula una chiamata in arrivo:</span>
+          <button id="btn-test-call-sim" class="px-3 py-1.5 rounded-xl bg-sage-700 hover:bg-sage-800 text-xs font-semibold text-paper-card transition">
+            Simula Chiamata
+          </button>
+        </div>
+      </div>
+      <button id="btn-close-dnd-ok" class="w-full py-3 rounded-2xl bg-sage-700 hover:bg-sage-800 text-paper-card font-semibold transition">
+        Ho Capito
+      </button>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       HEADER MINIMALISTA EDITORIALE
+       ======================================================================= -->
+  <header class="sticky top-0 z-30 border-b border-paper-border bg-paper/90 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-sage-100 border border-sage-200 flex items-center justify-center">
+          <i data-lucide="sprout" class="w-5 h-5 text-sage-700"></i>
+        </div>
+        <div>
+          <h1 class="font-serif text-2xl font-semibold tracking-tight text-sage-900 leading-none">Sylva</h1>
+          <p class="text-[10px] uppercase tracking-[0.2em] text-wood-dark font-semibold mt-1">Atelier Botanico & Studio</p>
+        </div>
+      </div>
+
+      <nav class="flex items-center bg-paper-warm p-1 rounded-2xl border border-paper-border order-3 lg:order-2 w-full lg:w-auto justify-between overflow-x-auto">
+        <button data-tab="studio" class="nav-btn active flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition bg-paper-card text-sage-900 shadow-sm border border-paper-border whitespace-nowrap">
+          <i data-lucide="timer" class="w-4 h-4 text-sage-700"></i>
+          <span>Studio</span>
+        </button>
+        <button data-tab="foresta" class="nav-btn flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium text-sage-600 hover:text-sage-900 transition whitespace-nowrap">
+          <i data-lucide="trees" class="w-4 h-4"></i>
+          <span>La Tua Foresta</span>
+        </button>
+        <button data-tab="erbario" class="nav-btn flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium text-sage-600 hover:text-sage-900 transition whitespace-nowrap">
+          <i data-lucide="book-open" class="w-4 h-4"></i>
+          <span>Erbario, Uccelli & Suoni</span>
+        </button>
+        <button data-tab="radura" class="nav-btn flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium text-sage-600 hover:text-sage-900 transition whitespace-nowrap">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          <span>Radura Condivisa</span>
+          <span id="nav-room-dot" class="hidden w-2 h-2 rounded-full bg-sage-700 animate-ping"></span>
+        </button>
+        <button data-tab="percorso" class="nav-btn flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium text-sage-600 hover:text-sage-900 transition whitespace-nowrap">
+          <i data-lucide="compass" class="w-4 h-4"></i>
+          <span>Percorso & XP</span>
+        </button>
+      </nav>
+
+      <div class="flex items-center gap-2 order-2 lg:order-3">
+        <div class="editorial-card px-3 py-1.5 rounded-2xl flex items-center gap-1.5" title="Semi di Linfa per sbloccare specie, uccelli e suoni">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-sage-700"></i>
+          <span id="header-sap-points" class="text-xs sm:text-sm font-bold text-sage-900 tabular-nums">180</span>
+          <span class="text-[11px] text-sage-600 hidden sm:inline">Linfa</span>
+        </div>
+        <div class="editorial-card px-3 py-1.5 rounded-2xl flex items-center gap-1.5" title="Punti Esperienza Naturalista">
+          <i data-lucide="award" class="w-3.5 h-3.5 text-wood-dark"></i>
+          <span id="header-xp-points" class="text-xs sm:text-sm font-semibold text-sage-800 tabular-nums">60 XP</span>
+        </div>
+        <div class="editorial-card px-2.5 py-1.5 rounded-2xl hidden md:flex items-center gap-1 text-wood-dark" title="Giorni consecutivi di studio">
+          <i data-lucide="flame" class="w-3.5 h-3.5"></i>
+          <span id="header-streak" class="text-xs font-bold">1g</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+    <!-- ==================== TAB 1: STUDIO & PREPARAZIONE ==================== -->
+    <section id="tab-studio" class="tab-content active">
+      <div id="studio-shared-banner" class="hidden editorial-panel rounded-2xl p-4 mb-6 border-sage-400/50 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-sage-100 text-sage-700 flex items-center justify-center">
+            <i data-lucide="users" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-sage-700">Radura Condivisa Attiva</span>
+              <span class="text-[11px] px-2 py-0.5 rounded-full bg-sage-100 text-sage-800 font-semibold">+25% Bonus Simbiosi</span>
+            </div>
+            <p id="studio-room-summary" class="text-sm text-sage-900 font-medium">Stanza: "Sessione Esame" • 3 Compagni pronti</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-quick-copy-invite" class="px-3.5 py-2 rounded-xl bg-paper-warm hover:bg-sage-100 border border-paper-border text-xs font-semibold text-sage-900 flex items-center gap-1.5 transition">
+            <i data-lucide="link" class="w-3.5 h-3.5 text-sage-700"></i>
+            <span>Copia Link Invito</span>
+          </button>
+          <button data-tab-jump="radura" class="px-3 py-2 rounded-xl text-xs text-sage-700 hover:underline font-medium">
+            Gestisci
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div class="lg:col-span-7 editorial-panel rounded-3xl p-6 sm:p-8">
+          <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+            <div>
+              <span class="text-[11px] uppercase tracking-[0.2em] text-wood-dark font-semibold">Specie Selezionata per la Semina</span>
+              <div class="flex items-center gap-2.5 mt-1">
+                <h2 id="studio-species-name" class="font-serif text-3xl sm:text-4xl font-semibold text-sage-900">Faggio Appenninico</h2>
+                <button id="btn-inspect-active-species" class="p-2 rounded-xl bg-paper-warm hover:bg-sage-100 border border-paper-border text-sage-700 transition" title="Leggi Scheda Botanica Completa">
+                  <i data-lucide="info" class="w-4 h-4"></i>
+                </button>
+              </div>
+              <p id="studio-species-latin" class="font-serif italic text-sm text-sage-600">Fagus sylvatica L. • Albero</p>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button data-tab-jump="radura" class="px-3 py-2 rounded-xl bg-paper-warm hover:bg-sage-100 border border-paper-border text-xs font-semibold text-sage-800 flex items-center gap-1.5 transition">
+                <i data-lucide="user-plus" class="w-3.5 h-3.5 text-sage-700"></i>
+                <span>Invita Amici</span>
+              </button>
+              <button data-tab-jump="erbario" class="px-3 py-2 rounded-xl bg-sage-100 hover:bg-sage-200 border border-sage-200 text-xs font-semibold text-sage-900 flex items-center gap-1.5 transition">
+                <i data-lucide="book-open" class="w-3.5 h-3.5 text-sage-700"></i>
+                <span>26 Specie</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="quick-species-strip" class="flex gap-2 overflow-x-auto pb-2 mb-4"></div>
+
+          <div class="relative w-full aspect-[16/10] max-h-[340px] rounded-2xl overflow-hidden border border-paper-border bg-[#EDEAE1] mb-6">
+            <canvas id="preview-canvas" class="w-full h-full block"></canvas>
+            <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs text-sage-900 bg-paper-card/85 backdrop-blur-md px-3.5 py-2 rounded-xl border border-paper-border">
+              <span>All'avvio: <strong>Schermo Intero Zen</strong> con solo il bosco e le frasi</span>
+              <span class="text-sage-700 font-semibold flex items-center gap-1">
+                <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i> Fullscreen
+              </span>
+            </div>
+          </div>
+
+          <div class="flex flex-col items-center">
+            <div id="setup-timer-display" class="font-serif text-6xl sm:text-7xl font-semibold text-sage-900 tabular-nums mb-4">
+              25:00
+            </div>
+
+            <div class="w-full flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
+              <div class="flex flex-wrap justify-center gap-1 bg-paper-warm p-1.5 rounded-2xl border border-paper-border">
+                <button data-mins="15" class="duration-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-sage-600 hover:text-sage-900 transition">15m</button>
+                <button data-mins="25" class="duration-btn active px-3 py-1.5 rounded-xl text-xs font-semibold bg-paper-card text-sage-900 shadow-sm border border-paper-border transition">25m</button>
+                <button data-mins="45" class="duration-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-sage-600 hover:text-sage-900 transition">45m</button>
+                <button data-mins="60" class="duration-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-sage-600 hover:text-sage-900 transition">60m</button>
+                <button data-mins="90" class="duration-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-sage-600 hover:text-sage-900 transition">90m</button>
+                <button data-mins="0.25" class="duration-btn px-2.5 py-1.5 rounded-xl text-[11px] font-bold text-sage-700 hover:bg-sage-100 transition" title="Prova rapida in 15 secondi">Demo 15s</button>
+              </div>
+
+              <div class="relative w-full sm:w-52">
+                <select id="study-tag-select" class="w-full appearance-none bg-paper-warm border border-paper-border text-sage-900 text-xs font-medium rounded-2xl px-4 py-2.5 pr-8 focus:outline-none focus:border-sage-700">
+                  <option value="Studio Profondo">📚 Studio Profondo</option>
+                  <option value="Esame Universitario">🎓 Esame Universitario</option>
+                  <option value="Lettura & Analisi">📖 Lettura & Analisi</option>
+                  <option value="Programmazione">💻 Programmazione</option>
+                  <option value="Scrittura & Tesi">✍️ Scrittura & Tesi</option>
+                  <option value="Lingue & Memoria">🌍 Lingue & Memoria</option>
+                </select>
+                <i data-lucide="chevron-down" class="w-4 h-4 text-sage-700 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+              </div>
+            </div>
+
+            <button id="btn-start-zen-session" class="w-full sm:w-auto px-10 py-4 rounded-2xl bg-sage-700 hover:bg-sage-800 text-paper-card font-semibold text-base shadow-sm transition flex items-center justify-center gap-3">
+              <i data-lucide="sprout" class="w-5 h-5"></i>
+              <span>Inizia Sessione a Schermo Intero</span>
+            </button>
+            <p class="text-xs text-sage-600 mt-3">
+              Ricompensa stimata: <strong id="estimated-reward-text" class="text-sage-800">+132 Semi di Linfa & +120 XP</strong>
+            </p>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5 flex flex-col gap-6">
+          <div class="editorial-panel rounded-3xl p-5">
+            <div class="flex items-center justify-between mb-2">
+              <div>
+                <span class="text-[10px] uppercase tracking-widest text-wood-dark font-bold">Rango Attuale</span>
+                <h3 id="studio-rank-title" class="font-serif text-2xl font-semibold text-sage-900 leading-none mt-0.5">Seme Dormiente</h3>
+              </div>
+              <button data-tab-jump="percorso" class="text-xs text-sage-700 hover:underline font-semibold">Vedi Tappe →</button>
+            </div>
+            <div class="w-full h-2 rounded-full bg-paper-warm overflow-hidden my-2.5 border border-paper-border">
+              <div id="studio-xp-bar" class="h-full bg-sage-700 transition-all duration-500" style="width: 10%"></div>
+            </div>
+            <div class="flex justify-between text-[11px] text-sage-600">
+              <span id="studio-xp-current">60 XP</span>
+              <span id="studio-xp-next">Prossimo livello: 150 XP</span>
+            </div>
+          </div>
+
+          <div class="editorial-panel rounded-3xl p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2.5">
+                <div class="p-2 rounded-xl bg-sage-100 text-sage-700">
+                  <i data-lucide="bell-off" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h3 class="font-serif text-xl font-semibold text-sage-900 leading-tight">Scudo Focus & Chiamate</h3>
+                  <p class="text-xs text-sage-600">Protezione attiva durante lo studio</p>
+                </div>
+              </div>
+              <button id="btn-open-dnd-guide" class="text-xs text-sage-700 hover:underline flex items-center gap-1 font-medium">
+                <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
+                <span>Guida</span>
+              </button>
+            </div>
+
+            <div class="space-y-3">
+              <div class="editorial-card p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                <div>
+                  <div class="text-sm font-semibold text-sage-900">Blocco Distrazioni & Tab</div>
+                  <p class="text-xs text-sage-600">La pianta appassisce se lasci l'app per più di 10s</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input type="checkbox" id="toggle-tab-shield" class="sr-only peer" checked>
+                  <div class="w-11 h-6 bg-paper-border rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-paper-card after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sage-700"></div>
+                </label>
+              </div>
+
+              <div class="editorial-card p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-semibold text-sage-900">Consenti Chiamate Emergenza</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-sage-100 text-sage-800 font-bold border border-sage-200">+15% Linfa</span>
+                  </div>
+                  <p class="text-xs text-sage-600">Premio disciplina per studio responsabile</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input type="checkbox" id="toggle-allow-calls" class="sr-only peer" checked>
+                  <div class="w-11 h-6 bg-paper-border rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-paper-card after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-wood-dark"></div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="editorial-panel rounded-3xl p-6">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2.5">
+                <div class="p-2 rounded-xl bg-sage-100 text-sage-700">
+                  <i data-lucide="headphones" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h3 class="font-serif text-xl font-semibold text-sage-900 leading-tight">Paesaggio Sonoro & Uccelli</h3>
+                  <p class="text-xs text-sage-600">Sintesi naturale & canti sbloccati</p>
+                </div>
+              </div>
+              <button id="btn-studio-mute" class="p-2 rounded-xl bg-paper-warm hover:bg-sage-100 border border-paper-border text-sage-800 transition" title="Silenzia / Attiva">
+                <i data-lucide="volume-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <div class="flex flex-wrap gap-1.5 mb-3.5">
+              <button data-preset="rainy" class="preset-btn px-2.5 py-1 rounded-xl bg-paper-warm hover:bg-sage-100 border border-paper-border text-[11px] font-semibold text-sage-800 transition">🌧️ Pioggia & Vento</button>
+              <button data-preset="dawn" class="preset-btn px-2.5 py-1 rounded-xl bg-paper-warm hover:bg-sage-100 border border-paper-border text-[11px] font-semibold text-sage-800 transition">🐦 Alba nel Bosco</button>
+              <button data-preset="deep" class="preset-btn px-2.5 py-1 rounded-xl bg-paper-warm hover:bg-sage-100 border border-paper-border text-[11px] font-semibold text-sage-800 transition">🧠 Concentrazione</button>
+            </div>
+
+            <div id="studio-sound-mixer" class="space-y-3 max-h-[250px] overflow-y-auto pr-1"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: LA TUA FORESTA ESPLORABILE ==================== -->
+    <section id="tab-foresta" class="tab-content">
+      <div class="editorial-panel rounded-3xl p-6 sm:p-8">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-paper-border">
+          <div>
+            <span class="text-xs uppercase tracking-[0.2em] text-wood-dark font-semibold">Riserva Naturale Personale</span>
+            <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-sage-900">La Tua Foresta Esplorabile</h2>
+            <p class="text-sm text-sage-600 mt-1">
+              Trascina il sentiero per passeggiare tra gli esemplari che hai piantato, usa lo zoom e clicca su alberi, piante, funghi o uccelli per scoprire la loro scheda e la sessione in cui sono nati.
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3">
+            <button id="btn-open-panoramic" class="px-5 py-3 rounded-2xl bg-sage-700 hover:bg-sage-800 text-paper-card font-semibold text-xs sm:text-sm shadow-sm flex items-center gap-2 transition">
+              <i data-lucide="maximize-2" class="w-4 h-4"></i>
+              <span>Passeggiata a Schermo Intero</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-6">
+          <div class="editorial-card px-4 py-3.5 rounded-2xl text-center">
+            <div id="stat-alive-count" class="font-serif text-2xl sm:text-3xl font-semibold text-sage-900">0</div>
+            <div class="text-[11px] text-wood-dark uppercase tracking-wider font-semibold">Specie Coltivate</div>
+          </div>
+          <div class="editorial-card px-4 py-3.5 rounded-2xl text-center">
+            <div id="stat-birds-count" class="font-serif text-2xl sm:text-3xl font-semibold text-sage-700">1 / 6</div>
+            <div class="text-[11px] text-wood-dark uppercase tracking-wider font-semibold">Uccelli Residenti</div>
+          </div>
+          <div class="editorial-card px-4 py-3.5 rounded-2xl text-center">
+            <div id="stat-focus-time" class="font-serif text-2xl sm:text-3xl font-semibold text-sage-900">0m</div>
+            <div class="text-[11px] text-wood-dark uppercase tracking-wider font-semibold">Studio Profondo</div>
+          </div>
+          <div class="editorial-card px-4 py-3.5 rounded-2xl text-center">
+            <div id="stat-withered-count" class="font-serif text-2xl sm:text-3xl font-semibold text-sage-600">0</div>
+            <div class="text-[11px] text-wood-dark uppercase tracking-wider font-semibold">Esemplari Appassiti</div>
+          </div>
+        </div>
+
+        <div class="relative w-full h-[360px] sm:h-[460px] rounded-3xl overflow-hidden border border-paper-border bg-[#EAE6DC] mb-6">
+          <canvas id="forest-diorama-canvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+
+          <div id="diorama-tooltip" class="hidden absolute top-4 left-4 px-4 py-2.5 rounded-2xl bg-paper-card/95 backdrop-blur-md border border-paper-border text-xs shadow-md pointer-events-none">
+            <div class="flex items-center gap-2">
+              <span id="diorama-tt-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-sage-100 text-sage-800">Albero</span>
+              <span id="diorama-tt-name" class="font-serif text-base font-semibold text-sage-900">Faggio Appenninico</span>
+            </div>
+            <div id="diorama-tt-sub" class="text-sage-700 font-medium mt-0.5">Clicca per scheda e dettagli sessione</div>
+          </div>
+
+          <div class="absolute top-4 right-4 flex items-center gap-1 bg-paper-card/90 backdrop-blur-md p-1 rounded-2xl border border-paper-border shadow-sm">
+            <button id="diorama-step-left" class="p-2 rounded-xl hover:bg-paper-warm text-sage-800 transition" title="Esplora a Sinistra">
+              <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </button>
+            <button id="diorama-zoom-out" class="p-2 rounded-xl hover:bg-paper-warm text-sage-800 transition" title="Riduci Zoom">
+              <i data-lucide="zoom-out" class="w-4 h-4"></i>
+            </button>
+            <button id="diorama-reset-view" class="px-2.5 py-1 rounded-xl hover:bg-paper-warm text-[11px] font-semibold text-sage-700 transition" title="Ripristina Vista">
+              100%
+            </button>
+            <button id="diorama-zoom-in" class="p-2 rounded-xl hover:bg-paper-warm text-sage-800 transition" title="Ingrandisci">
+              <i data-lucide="zoom-in" class="w-4 h-4"></i>
+            </button>
+            <button id="diorama-step-right" class="p-2 rounded-xl hover:bg-paper-warm text-sage-800 transition" title="Esplora a Destra">
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <div class="absolute bottom-3 left-4 right-4 flex flex-wrap items-center justify-between gap-2 text-xs text-sage-900 bg-paper-card/85 backdrop-blur-md px-4 py-2 rounded-xl border border-paper-border">
+            <span>Trascina per esplorare il bosco • Clicca su una pianta, fungo o uccello per ispezionarlo</span>
+            <span id="diorama-birds-badge" class="text-sage-700 font-semibold">🐦 Avifauna: Pettirosso Europeo</span>
+          </div>
+        </div>
+
+        <h3 class="font-serif text-2xl font-semibold text-sage-900 mb-3">Registro Esemplari della Radura</h3>
+        <div id="forest-history-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: ERBARIO, UCCELLI & SUONI (26 SPECIE) ==================== -->
+    <section id="tab-erbario" class="tab-content">
+      <div class="editorial-panel rounded-3xl p-6 sm:p-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-paper-border">
+          <div>
+            <span class="text-xs uppercase tracking-[0.2em] text-wood-dark font-semibold">Collezione Scientifica • 26 Specie Naturalistiche</span>
+            <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-sage-900">Erbario, Uccelli & Suoni</h2>
+            <p class="text-sm text-sage-600 mt-1">
+              Investi i tuoi <strong>Semi di Linfa</strong> per sbloccare 26 specie (7 alberi, 7 piante/fiori, 6 funghi, 6 uccelli con canto) e nuovi paesaggi sonori.
+            </p>
+          </div>
+
+          <div class="flex flex-wrap gap-1 bg-paper-warm p-1.5 rounded-2xl border border-paper-border">
+            <button data-cat="all" class="enc-cat-btn active px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-paper-card text-sage-900 shadow-sm border border-paper-border">Tutti (26)</button>
+            <button data-cat="albero" class="enc-cat-btn px-3.5 py-1.5 rounded-xl text-xs font-medium text-sage-600 hover:text-sage-900">🌳 Alberi (7)</button>
+            <button data-cat="pianta" class="enc-cat-btn px-3.5 py-1.5 rounded-xl text-xs font-medium text-sage-600 hover:text-sage-900">🌿 Piante (7)</button>
+            <button data-cat="fungo" class="enc-cat-btn px-3.5 py-1.5 rounded-xl text-xs font-medium text-sage-600 hover:text-sage-900">🍄 Funghi (6)</button>
+            <button data-cat="uccello" class="enc-cat-btn px-3.5 py-1.5 rounded-xl text-xs font-medium text-sage-600 hover:text-sage-900">🐦 Uccelli (6)</button>
+            <button data-cat="suono" class="enc-cat-btn px-3.5 py-1.5 rounded-xl text-xs font-medium text-sage-600 hover:text-sage-900">🎵 Suoni</button>
+          </div>
+        </div>
+
+        <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-6"></div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: RADURA CONDIVISA ==================== -->
+    <section id="tab-radura" class="tab-content">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-6 editorial-panel rounded-3xl p-6 sm:p-8">
+          <span class="text-xs uppercase tracking-[0.2em] text-wood-dark font-semibold">Studio Collettivo Silenzioso</span>
+          <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-sage-900 mt-1 mb-2">Radura Condivisa</h2>
+          <p class="text-sm text-sage-600 leading-relaxed mb-6">
+            Crea una stanza di concentrazione e invia il link ai tuoi amici. Durante lo Schermo Intero Zen, le loro piante cresceranno silenziosamente accanto alla tua nel bosco, assegnando a tutti il <strong class="text-sage-700">Bonus Simbiosi (+25% Linfa & XP)</strong>.
+          </p>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-sage-800 mb-1.5">Il Tuo Nome da Botanico</label>
+              <input id="room-user-name" type="text" placeholder="Es. Marco, Giulia, Elena..." class="w-full bg-paper-warm border border-paper-border rounded-2xl px-4 py-3 text-sm text-sage-900 focus:outline-none focus:border-sage-700" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-sage-800 mb-1.5">Nome della Stanza di Studio</label>
+              <input id="room-title-input" type="text" placeholder="Es. Sessione Esame Botanica" class="w-full bg-paper-warm border border-paper-border rounded-2xl px-4 py-3 text-sm text-sage-900 focus:outline-none focus:border-sage-700" />
+            </div>
+
+            <div class="flex flex-wrap gap-3 pt-2">
+              <button id="btn-create-room" class="flex-1 py-3.5 px-5 rounded-2xl bg-sage-700 hover:bg-sage-800 text-paper-card font-semibold text-sm transition flex items-center justify-center gap-2">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                <span>Crea Stanza & Genera Link</span>
+              </button>
+              <button id="btn-leave-room" class="hidden py-3.5 px-4 rounded-2xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 text-xs font-semibold transition">
+                Esci dalla Radura
+              </button>
+            </div>
+          </div>
+
+          <div id="room-invite-box" class="hidden mt-6 editorial-card p-5 rounded-2xl space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-sage-700">Link d'Invito Univoco Pronto</span>
+              <span id="room-code-badge" class="text-xs font-mono bg-paper-card border border-paper-border px-2.5 py-1 rounded-lg text-sage-800">CODICE</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <input id="room-invite-url" type="text" readonly class="flex-1 bg-paper-card border border-paper-border rounded-xl px-3 py-2.5 text-xs text-sage-800 font-mono select-all focus:outline-none" />
+              <button id="btn-copy-room-url" class="px-4 py-2.5 rounded-xl bg-sage-700 hover:bg-sage-800 text-paper-card text-xs font-semibold flex items-center gap-1.5 transition shrink-0">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                <span>Copia</span>
+              </button>
+            </div>
+            <p class="text-[11px] text-sage-600">
+              Condividi questo URL con i tuoi amici: aprendolo entreranno direttamente nella tua radura.
+            </p>
+          </div>
+        </div>
+
+        <div class="lg:col-span-6 editorial-panel rounded-3xl p-6 sm:p-8 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <span class="text-xs uppercase tracking-[0.2em] text-wood-dark font-semibold">Ecosistema Collettivo</span>
+                <h3 id="active-room-heading" class="font-serif text-2xl sm:text-3xl font-semibold text-sage-900">Nessuna Stanza Attiva</h3>
+              </div>
+              <button id="btn-simulate-friend" class="px-3.5 py-2 rounded-xl bg-paper-warm hover:bg-sage-100 border border-paper-border text-xs font-semibold text-sage-900 flex items-center gap-1.5 transition" title="Simula l'ingresso di un compagno di studio">
+                <i data-lucide="user-plus" class="w-3.5 h-3.5 text-sage-700"></i>
+                <span>+ Simula Compagno</span>
+              </button>
+            </div>
+
+            <div id="room-companions-list" class="space-y-3 my-4"></div>
+          </div>
+
+          <div class="pt-4 border-t border-paper-border flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p class="text-xs text-sage-600">
+              Pronto a concentrarti insieme ai tuoi compagni?
+            </p>
+            <button data-tab-jump="studio" class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-sage-700 hover:bg-sage-800 text-paper-card font-semibold text-xs sm:text-sm transition">
+              Vai al Timer Zen →
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 5: PERCORSO A PUNTEGGIO & SFIDE ==================== -->
+    <section id="tab-percorso" class="tab-content">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-7 editorial-panel rounded-3xl p-6 sm:p-8">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <div>
+              <span class="text-xs uppercase tracking-[0.2em] text-wood-dark font-semibold">Progressione Evolutiva</span>
+              <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-sage-900">Percorso del Naturalista</h2>
+            </div>
+            <div class="px-4 py-2 rounded-2xl bg-paper-warm border border-paper-border text-right">
+              <div class="text-[10px] uppercase text-wood-dark font-semibold">Esperienza Totale</div>
+              <div id="path-total-xp" class="font-serif text-2xl font-semibold text-sage-900">60 XP</div>
+            </div>
+          </div>
+          <p class="text-sm text-sage-600 mb-6">
+            Ogni sessione di studio e ogni sfida completata ti fa avanzare lungo i 6 gradi botanici, aumentando il moltiplicatore permanente di Semi di Linfa.
+          </p>
+
+          <div id="path-milestones-list" class="space-y-3.5"></div>
+        </div>
+
+        <div class="lg:col-span-5 flex flex-col gap-6">
+          <div class="editorial-panel rounded-3xl p-6">
+            <div class="flex items-center gap-2.5 mb-4">
+              <div class="p-2.5 rounded-xl bg-sage-100 text-sage-700">
+                <i data-lucide="target" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="font-serif text-2xl font-semibold text-sage-900 leading-tight">Sfide del Botanico</h3>
+                <p class="text-xs text-sage-600">Obiettivi automatici per XP & Semi di Linfa extra</p>
+              </div>
+            </div>
+            <div id="quests-list" class="space-y-3"></div>
+          </div>
+
+          <div class="editorial-panel rounded-3xl p-6">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="p-2.5 rounded-xl bg-sage-100 text-sage-700">
+                <i data-lucide="feather" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="font-serif text-xl font-semibold text-sage-900">Indice di Biodiversità</h3>
+                <p class="text-xs text-sage-600">26 Specie • Flora, Micota & Avifauna</p>
+              </div>
+            </div>
+            <div id="biodiversity-summary" class="space-y-3 mt-4"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    /**
+     * ============================================================================
+     * SYLVA — ATELIER BOTANICO MINIMALISTA, 26 SPECIE & FORESTA ESPLORABILE
+     * ============================================================================
+     */
+
+    const POETIC_QUOTES = [
+      { text: "«Le radici profonde non temono il gelo; ogni minuto di silenzio nutre la tua foresta interiore.»", author: "Proverbio del Bosco" },
+      { text: "«La natura non ha fretta, eppure tutto si compie.»", author: "Lao Tzu" },
+      { text: "«Sotto la terra, le radici degli alberi e le ife dei funghi dialogano in un silenzio operoso.»", author: "Ecologia Forestale" },
+      { text: "«Coltiva la tua attenzione come un giardino segreto: ciò che annaffi con pazienza fiorirà.»", author: "Sylva • Contemplazione" },
+      { text: "«Anche il faggio più maestoso è stato un giorno un piccolo seme che ha custodito la luce.»", author: "Saggezza Silvestre" },
+      { text: "«Nel rumore del mondo, il tuo respiro calmo è una radura illuminata dal sole.»", author: "Sylva • Quiete" },
+      { text: "«Ogni albero che pianti nel silenzio richiama nuovi uccelli a cantare tra le tue chiome.»", author: "Diario del Naturalista" },
+      { text: "«Lascia che i pensieri superflui cadano come foglie d'autunno; resta saldo come il tronco.»", author: "Meditazione Arborea" }
+    ];
+
+    // --- 20 SPECIE BOTANICHE & MICOLOGICHE (7 ALBERI + 7 PIANTE/FIORI + 6 FUNGHI) ---
+    const SPECIES_CATALOG = [
+      // === 7 ALBERI ===
+      {
+        id: 'faggio',
+        category: 'albero',
+        categoryLabel: 'Albero',
+        name: 'Faggio Appenninico',
+        latin: 'Fagus sylvatica L.',
+        unlockCost: 0,
+        family: 'Fagaceae',
+        altitude: '600 – 1.800 m s.l.m.',
+        phenology: 'Fioritura Apr–Mag • Fruttificazione Set–Ott',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Fagus_sylvatica_001.JPG/800px-Fagus_sylvatica_001.JPG',
+        barkBase: '#8C877E', barkDark: '#5C574F', barkLight: '#B5B0A6',
+        foliagePalette: ['#3F6646', '#53805B', '#6B9972', '#89B58F'],
+        accentColor: '#C9A86A',
+        renderType: 'tree_beech',
+        morphology: 'Albero caducifoglio alto fino a 35-40 m con fusto colonnare slanciato e corteccia sottile, liscia e grigio-argentea. Foglie alterne, ovate con margine leggermente ondulato e cigliato da giovani.',
+        ecology: 'Specie sciafila e mesofila che forma le maestose faggete su suoli profondi, freschi e ben drenati con elevata umidità atmosferica.',
+        ethnobotany: 'Attraverso le reti micorriziche sotterranee, i faggi maturi trasferiscono carbonio e nutrienti ai giovani semenzali nella penombra del sottobosco.'
+      },
+      {
+        id: 'roverella',
+        category: 'albero',
+        categoryLabel: 'Albero',
+        name: 'Quercia Roverella',
+        latin: 'Quercus pubescens Willd.',
+        unlockCost: 75,
+        family: 'Fagaceae',
+        altitude: '0 – 1.100 m s.l.m.',
+        phenology: 'Fioritura Apr–Mag • Ghiande Ott–Nov',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Quercus_robur_JPG1.jpg/800px-Quercus_robur_JPG1.jpg',
+        barkBase: '#735C48', barkDark: '#473628', barkLight: '#997E67',
+        foliagePalette: ['#466949', '#5C855E', '#769E78', '#94B895'],
+        accentColor: '#C29B57',
+        renderType: 'tree_oak',
+        morphology: 'Quercia caducifoglia robusta (15-25 m) dal tronco spesso e corteccia bruno-scura fessurata. Foglie lobate con pagina inferiore vellutata.',
+        ecology: 'Specie eliofila e termofila dei versanti soleggiati collinari e submontani, ben adattata a suoli calcarei e periodi asciutti.',
+        ethnobotany: 'Il suo apparato radicale ospita spesso micorrize pregiate e offre riparo a un’ampia biodiversità di insetti e uccelli.'
+      },
+      {
+        id: 'ciliegio',
+        category: 'albero',
+        categoryLabel: 'Albero',
+        name: 'Ciliegio Selvatico',
+        latin: 'Prunus avium (L.) L.',
+        unlockCost: 115,
+        family: 'Rosaceae',
+        altitude: '100 – 1.400 m s.l.m.',
+        phenology: 'Fioritura Apr • Drupe Giu–Lug',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Prunus_avium_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-114.jpg/640px-Prunus_avium_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-114.jpg',
+        barkBase: '#80554A', barkDark: '#4E3129', barkLight: '#AB7A6E',
+        foliagePalette: ['#D993AB', '#EBB5C7', '#F9E1E9', '#618A64'],
+        accentColor: '#FAF8F2',
+        renderType: 'tree_blossom',
+        morphology: 'Albero elegante fino a 25 m con corteccia bruno-rossastra lucida percorsa da lenticelle orizzontali. Fiori bianchi primaverili riuniti in corimbi.',
+        ecology: 'Cresce in boschi misti di latifoglie e margini luminosi su suoli fertili e freschi.',
+        ethnobotany: 'I frutti maturi in estate rappresentano una risorsa preziosa per merli, pettirossi, cinciallegre e ghiandaie.'
+      },
+      {
+        id: 'pino_loricato',
+        category: 'albero',
+        categoryLabel: 'Albero',
+        name: 'Pino Loricato',
+        latin: 'Pinus heldreichii H.Christ',
+        unlockCost: 165,
+        family: 'Pinaceae',
+        altitude: '1.200 – 2.200 m s.l.m.',
+        phenology: 'Impollinazione Giu • Pigne Set',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Pinus_heldreichii_Pollino.jpg/800px-Pinus_heldreichii_Pollino.jpg',
+        barkBase: '#82766A', barkDark: '#524840', barkLight: '#ADA094',
+        foliagePalette: ['#2E523E', '#3F6B52', '#548568', '#6FA183'],
+        accentColor: '#B8956A',
+        renderType: 'tree_pine',
+        morphology: 'Conifera monumentale e longeva con corteccia grigio-cenere a placche poligonali simili a una corazza ("lorica") e aghi rigidi appaiati.',
+        ecology: 'Relitto glaciale delle rupi calcaree e creste dolomitiche d’alta quota, resistente al vento e all’escursione termica.',
+        ethnobotany: 'Simbolo botanico del Parco Nazionale del Pollino, comprende esemplari secolari di straordinaria longevità.'
+      },
+      {
+        id: 'abete_bianco',
+        category: 'albero',
+        categoryLabel: 'Albero',
+        name: 'Abete Bianco',
+        latin: 'Abies alba Mill.',
+        unlockCost: 195,
+        family: 'Pinaceae',
+        altitude: '800 – 1.900 m s.l.m.',
+        phenology: 'Fioritura Mag • Strobili eretti Set–Ott',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Abies_alba_001.JPG/800px-Abies_alba_001.JPG',
+        barkBase: '#7D7A74', barkDark: '#4F4D49', barkLight: '#A6A39B',
+        foliagePalette: ['#294B3D', '#3A6653', '#4E806A', '#6D9E88'],
+        accentColor: '#B5A276',
+        renderType: 'tree_fir',
+        morphology: 'Conifera maestosa con fusto dritto, corteccia grigio-argentea e aghi appiattiti con due bande chiare sulla pagina inferiore.',
+        ecology: 'Specie sciafila montana consociata spesso al faggio in ambienti freschi e umidi.',
+        ethnobotany: 'I suoi strobili crescono eretti sui rami superiori e si disgregano a maturità liberando i semi alati.'
+      },
+      {
+        id: 'betulla_bianca',
+        category: 'albero',
+        categoryLabel: 'Albero',
+        name: 'Betulla Bianca',
+        latin: 'Betula pendula Roth',
+        unlockCost: 135,
+        family: 'Betulaceae',
+        altitude: '200 – 1.900 m s.l.m.',
+        phenology: 'Fioritura Apr–Mag • Amenti Est',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Betula_pendula_001.jpg/800px-Betula_pendula_001.jpg',
+        barkBase: '#EAE6DC', barkDark: '#3B3D3A', barkLight: '#FCFBF8',
+        foliagePalette: ['#6E9656', '#85AD6A', '#9EC482', '#B9DB9C'],
+        accentColor: '#D9C37E',
+        renderType: 'tree_birch',
+        morphology: 'Albero slanciato e luminoso (15-25 m) con inconfondibile corteccia bianca cartacea che si sfoglia in sottili strisce e rami flessuosi.',
+        ecology: 'Specie pioniera eliofila che colonizza radure, terreni freschi o sabbiosi e margini forestali con chioma leggera e filtrante.',
+        ethnobotany: 'La chioma chiara lascia passare molta luce, favorendo un sottobosco ricco di erbe, felci e funghi micorrizici.'
+      },
+      {
+        id: 'acero_montano',
+        category: 'albero',
+        categoryLabel: 'Albero',
+        name: 'Acero Montano',
+        latin: 'Acer pseudoplatanus L.',
+        unlockCost: 215,
+        family: 'Sapindaceae',
+        altitude: '500 – 1.700 m s.l.m.',
+        phenology: 'Fioritura Mag–Giu • Samare Set',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Acer_pseudoplatanus_001.JPG/800px-Acer_pseudoplatanus_001.JPG',
+        barkBase: '#877C72', barkDark: '#595048', barkLight: '#ADA196',
+        foliagePalette: ['#4A7348', '#628F5E', '#7EAD78', '#B87A4B'],
+        accentColor: '#D49A5A',
+        renderType: 'tree_maple',
+        morphology: 'Albero vigoroso con ampia chioma cupoliforme, foglie palmato-lobate a 5 lobi dentati e frutti a doppia samara ad angolo acuto.',
+        ecology: 'Boschi montani misti di latifoglie su suoli ricchi di humus, freschi e ben aerati.',
+        ethnobotany: 'In autunno la sua chioma si tinge di calde sfumature ambrate e dorate prima della caduta delle foglie.'
+      },
+
+      // === 7 PIANTE & FIORI ===
+      {
+        id: 'felce',
+        category: 'pianta',
+        categoryLabel: 'Pianta',
+        name: 'Felce Aquilina',
+        latin: 'Pteridium aquilinum (L.) Kuhn',
+        unlockCost: 0,
+        family: 'Dennstaedtiaceae',
+        altitude: '0 – 1.700 m s.l.m.',
+        phenology: 'Sporificazione Lug–Set',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Pteridium_aquilinum_2005.08.28_11.46.30-p8280037.jpg/800px-Pteridium_aquilinum_2005.08.28_11.46.30-p8280037.jpg',
+        barkBase: '#58785C', barkDark: '#38523B', barkLight: '#7FA183',
+        foliagePalette: ['#476E4F', '#5D8C66', '#77A880', '#96C29E'],
+        accentColor: '#C2A661',
+        renderType: 'plant_fern',
+        morphology: 'Pteridofita perenne dotata di rizoma sotterraneo e grandi fronde triangolari finemente suddivise in pinne e pinnule.',
+        ecology: 'Radure boschive, castagneti e versanti luminosi con suolo profondo e ben drenato.',
+        ethnobotany: 'Le giovani fronde si svolgono a spirale ("crozier") proteggendo i tessuti meristematici più delicati.'
+      },
+      {
+        id: 'orchidea_venere',
+        category: 'pianta',
+        categoryLabel: 'Pianta',
+        name: 'Scarpetta di Venere',
+        latin: 'Cypripedium calceolus L.',
+        unlockCost: 120,
+        family: 'Orchidaceae',
+        altitude: '500 – 1.900 m s.l.m.',
+        phenology: 'Fioritura Mag–Giu',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Cypripedium_calceolus_Orchi_001.jpg/800px-Cypripedium_calceolus_Orchi_001.jpg',
+        barkBase: '#527A58', barkDark: '#35523A', barkLight: '#7CA382',
+        foliagePalette: ['#48704E', '#628F68', '#82AB88'],
+        accentColor: '#E6BD45',
+        renderType: 'plant_orchid',
+        morphology: 'Elegante orchidea spontanea con fusto foglioso e fiore vistoso formato da tepali bruno-porpora e labello rigonfio giallo dorato.',
+        ecology: 'Boschi radi di faggio e conifere su substrati calcarei in stazioni fresche e curate.',
+        ethnobotany: 'La forma a sacchetto del labello guida gli insetti impollinatori lungo un percorso obbligato verso gli organi riproduttivi.'
+      },
+      {
+        id: 'stella_alpina',
+        category: 'pianta',
+        categoryLabel: 'Pianta',
+        name: 'Stella Alpina',
+        latin: 'Leontopodium nivale (Ten.) Huet',
+        unlockCost: 155,
+        family: 'Asteraceae',
+        altitude: '1.500 – 3.000 m s.l.m.',
+        phenology: 'Fioritura Lug–Set',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Leontopodium_nivale_subsp._alpinum_20130724.jpg/800px-Leontopodium_nivale_subsp._alpinum_20130724.jpg',
+        barkBase: '#6E887E', barkDark: '#4A6158', barkLight: '#97B0A6',
+        foliagePalette: ['#607D72', '#7E9C90', '#A6C0B6'],
+        accentColor: '#FAF8F2',
+        renderType: 'plant_edelweiss',
+        morphology: 'Pianta erbacea alpina con densa peluria lanosa argentea e infiorescenza a stella formata da brattee vellutate attorno ai capolini.',
+        ecology: 'Praterie rupestri, ghiaioni e fessure rocciose d’alta montagna esposte a forte radiazione solare.',
+        ethnobotany: 'Il rivestimento lanoso riduce la perdita d’acqua e scherma la pianta dai raggi ultravioletti d’alta quota.'
+      },
+      {
+        id: 'genziana',
+        category: 'pianta',
+        categoryLabel: 'Pianta',
+        name: 'Genziana Maggiore',
+        latin: 'Gentiana lutea L.',
+        unlockCost: 185,
+        family: 'Gentianaceae',
+        altitude: '1.000 – 2.200 m s.l.m.',
+        phenology: 'Fioritura Giu–Ago',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Gentiana_lutea_002.JPG/800px-Gentiana_lutea_002.JPG',
+        barkBase: '#547D5D', barkDark: '#36573D', barkLight: '#7CA385',
+        foliagePalette: ['#4A7353', '#648F6D', '#84AD8D'],
+        accentColor: '#E0B23D',
+        renderType: 'plant_gentian',
+        morphology: 'Robusta pianta erbacea montana con grandi foglie opposte nervate e fiori giallo oro riuniti all’ascella delle foglie superiori.',
+        ecology: 'Pascoli montani, radure boschive e versanti soleggiati d’altura.',
+        ethnobotany: 'Specie perenne a crescita lenta che impiega diversi anni prima di produrre la prima fioritura.'
+      },
+      {
+        id: 'campanula_alpi',
+        category: 'pianta',
+        categoryLabel: 'Pianta',
+        name: 'Campanula delle Alpi',
+        latin: 'Campanula cochleariifolia Lam.',
+        unlockCost: 105,
+        family: 'Campanulaceae',
+        altitude: '800 – 2.400 m s.l.m.',
+        phenology: 'Fioritura Giu–Set',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Campanula_cochleariifolia_01.jpg/800px-Campanula_cochleariifolia_01.jpg',
+        barkBase: '#5C7D65', barkDark: '#3D5744', barkLight: '#82A38B',
+        foliagePalette: ['#55785E', '#6E9478', '#8EB398'],
+        accentColor: '#7C9CC2',
+        renderType: 'plant_bellflower',
+        morphology: 'Delicata erbacea perenne con steli sottili e leggeri fiori penduli a campanula di colore azzurro-lavanda tenue.',
+        ecology: 'Ghiaioni, detriti calcarei, massi erranti e margini sassosi montani.',
+        ethnobotany: 'I fiori leggermente reclinati proteggono il polline e il nettare dall’umidità e dalla pioggia.'
+      },
+      {
+        id: 'anemone_boschi',
+        category: 'pianta',
+        categoryLabel: 'Pianta',
+        name: 'Anemone dei Boschi',
+        latin: 'Anemone nemorosa L.',
+        unlockCost: 85,
+        family: 'Ranunculaceae',
+        altitude: '0 – 1.800 m s.l.m.',
+        phenology: 'Fioritura Mar–Mag',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Anemone_nemorosa_001.jpg/800px-Anemone_nemorosa_001.jpg',
+        barkBase: '#5A7A5E', barkDark: '#3B543E', barkLight: '#80A184',
+        foliagePalette: ['#527357', '#6B8F70', '#89AD8E'],
+        accentColor: '#FAF8F2',
+        renderType: 'plant_anemone',
+        morphology: 'Pianta primaverile con foglie cauline divise in tre lobi incisi e corolle bianco-avorio aperte alla luce con antere dorate.',
+        ecology: 'Sottobosco di latifoglie, faggete e castagneti prima della piena chiusura delle chiome estive.',
+        ethnobotany: 'È una tipica specie primaverile ("spring ephemeral") che completa il ciclo riproduttivo sfruttando il sole primaverile.'
+      },
+      {
+        id: 'digitale_purpurea',
+        category: 'pianta',
+        categoryLabel: 'Pianta',
+        name: 'Digitale Purpurea',
+        latin: 'Digitalis purpurea L.',
+        unlockCost: 175,
+        family: 'Plantaginaceae',
+        altitude: '100 – 1.600 m s.l.m.',
+        phenology: 'Fioritura Giu–Ago',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Digitalis_purpurea_20050618.jpg/800px-Digitalis_purpurea_20050618.jpg',
+        barkBase: '#5C7D61', barkDark: '#3D5741', barkLight: '#82A387',
+        foliagePalette: ['#527357', '#6B8F70', '#89AD8E'],
+        accentColor: '#C47B97',
+        renderType: 'plant_foxglove',
+        morphology: 'Slanciata pianta biennale o perenne con racemo terminale di fiori tubulari campanulati rosa-purpurei maculati all’interno.',
+        ecology: 'Radure boschive, margini di sentieri e terreni silicei freschi.',
+        ethnobotany: 'I fiori tubulari sono particolarmente visitati dai bombi per la raccolta del nettare.'
+      },
+
+      // === 6 FUNGHI ===
+      {
+        id: 'porcino',
+        category: 'fungo',
+        categoryLabel: 'Fungo',
+        name: 'Porcino Nobile',
+        latin: 'Boletus edulis Bull.',
+        unlockCost: 0,
+        family: 'Boletaceae',
+        altitude: '100 – 1.800 m s.l.m.',
+        phenology: 'Carpofori Est–Aut (Lug–Nov)',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Boletus_edulis_EtgHolz_040725_098.jpg/800px-Boletus_edulis_EtgHolz_040725_098.jpg',
+        barkBase: '#E3CEB6', barkDark: '#B89E82', barkLight: '#F5E9DA',
+        foliagePalette: ['#7D5435', '#9C6D48', '#B8865E'],
+        accentColor: '#D9C7A3',
+        renderType: 'mushroom_porcino',
+        morphology: 'Cappello carnoso bruno-nocciola con sfumature più chiare verso il bordo, tubuli e pori fini, gambo sodo con reticolo chiaro nella parte alta.',
+        ecology: 'Fungo simbionte ectomicorrizico legato a faggio, quercia, castagno e conifere.',
+        ethnobotany: 'Collabora con le radici arboree scambiando sali minerali e acqua in cambio di zuccheri prodotti dalla fotosintesi.'
+      },
+      {
+        id: 'amanita',
+        category: 'fungo',
+        categoryLabel: 'Fungo',
+        name: 'Ovolo Malefico',
+        latin: 'Amanita muscaria (L.) Lam.',
+        unlockCost: 100,
+        family: 'Amanitaceae',
+        altitude: '200 – 2.000 m s.l.m.',
+        phenology: 'Carpofori Ago–Nov',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/2006-10-25_Amanita_muscaria_crop.jpg/800px-2006-10-25_Amanita_muscaria_crop.jpg',
+        barkBase: '#F2EFE7', barkDark: '#CCC6BA', barkLight: '#FCFBF8',
+        foliagePalette: ['#BD463E', '#D45D55', '#E67A73'],
+        accentColor: '#FAF8F2',
+        renderType: 'mushroom_amanita',
+        morphology: 'Cappello rosso-arancio brillante con verruche chiare, lamelle fitte bianche, gambo slanciato con anello membranoso.',
+        ecology: 'Simbionte micorrizico frequente nei boschi di betulla, faggio e abete.',
+        ethnobotany: 'Specie iconica del sottobosco autunnale (non commestibile).'
+      },
+      {
+        id: 'finferlo',
+        category: 'fungo',
+        categoryLabel: 'Fungo',
+        name: 'Finferlo o Galletto',
+        latin: 'Cantharellus cibarius Fr.',
+        unlockCost: 145,
+        family: 'Cantharellaceae',
+        altitude: '100 – 1.700 m s.l.m.',
+        phenology: 'Carpofori Giu–Nov',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Chanterelle_Cantharellus_cibarius.jpg/800px-Chanterelle_Cantharellus_cibarius.jpg',
+        barkBase: '#E3B04B', barkDark: '#BA8829', barkLight: '#F5CC73',
+        foliagePalette: ['#CF972C', '#E6B042', '#F7CD70'],
+        accentColor: '#F7DC9C',
+        renderType: 'mushroom_chanterelle',
+        morphology: 'Carpoforo giallo dorato a forma di trombetta o imbuto con pliche arrotondate che scendono lungo il gambo.',
+        ecology: 'Boschi di latifoglie e conifere su suoli muschiosi e freschi.',
+        ethnobotany: 'Il colore giallo dorato è dovuto alla presenza di carotenoidi.'
+      },
+      {
+        id: 'mycena_bio',
+        category: 'fungo',
+        categoryLabel: 'Fungo',
+        name: 'Fungo Bioluminescente',
+        latin: 'Mycena chlorophos (Berk. & M.A.Curtis) Sacc.',
+        unlockCost: 205,
+        family: 'Mycenaceae',
+        altitude: '0 – 900 m s.l.m.',
+        phenology: 'Carpofori Umido-Caldi',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Mycena_chlorophos_bioluminescence.jpg/800px-Mycena_chlorophos_bioluminescence.jpg',
+        barkBase: '#8ABDB3', barkDark: '#55877E', barkLight: '#BAE0D8',
+        foliagePalette: ['#529185', '#6EADA1', '#92C9BF'],
+        accentColor: '#D8F0EB',
+        renderType: 'mushroom_glow',
+        morphology: 'Piccolo fungo saprotrofo dal cappello campanulato striato e tonalità verde-salvia chiara.',
+        ecology: 'Cresce su legno in decomposizione, rametti e lettiera umida del sottobosco.',
+        ethnobotany: 'Partecipa al riciclo naturale della materia organica restituendo nutrienti al suolo forestale.'
+      },
+      {
+        id: 'mazza_tamburo',
+        category: 'fungo',
+        categoryLabel: 'Fungo',
+        name: 'Mazza di Tamburo',
+        latin: 'Macrolepiota procera (Scop.) Singer',
+        unlockCost: 130,
+        family: 'Agaricaceae',
+        altitude: '0 – 1.500 m s.l.m.',
+        phenology: 'Carpofori Est–Aut',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Macrolepiota_procera_01.jpg/800px-Macrolepiota_procera_01.jpg',
+        barkBase: '#E5DEC9', barkDark: '#9C8A73', barkLight: '#F7F3E6',
+        foliagePalette: ['#9E886D', '#B8A084', '#D1BC9F'],
+        accentColor: '#FAF8F2',
+        renderType: 'mushroom_parasol',
+        morphology: 'Fungo di notevole slancio con cappello ampio a umbone centrale e squame brune embriciate, gambo alto maculato con anello doppio scorrevole.',
+        ecology: 'Radure boschive, margini di prati e boschi luminosi.',
+        ethnobotany: 'Il gambo può superare facilmente i 25-35 cm di altezza.'
+      },
+      {
+        id: 'spugnola_bruna',
+        category: 'fungo',
+        categoryLabel: 'Fungo',
+        name: 'Spugnola Bruna',
+        latin: 'Morchella esculenta (L.) Pers.',
+        unlockCost: 190,
+        family: 'Morchellaceae',
+        altitude: '0 – 1.500 m s.l.m.',
+        phenology: 'Carpofori Primaverili (Mar–Mag)',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Morchella_esculenta_01.jpg/800px-Morchella_esculenta_01.jpg',
+        barkBase: '#E6DEC8', barkDark: '#7A5B3E', barkLight: '#F5EFE0',
+        foliagePalette: ['#7A5A3C', '#967250', '#B38C66'],
+        accentColor: '#E8DFC8',
+        renderType: 'mushroom_morel',
+        morphology: 'Fungo primaverile caratterizzato da un cappello globoso o conico a forma di alveare con costolature e cavità irregolari.',
+        ecology: 'Boschi ripariali, frassineti, margini boschivi e radure umide primaverili.',
+        ethnobotany: 'È uno dei funghi primaverili più ricercati e riconoscibili per la struttura a favo del cappello.'
+      }
+    ];
+
+    // --- 6 UCCELLI SBLOCCABILI CON CANTO SINTETIZZATO ---
+    const BIRDS_CATALOG = [
+      {
+        id: 'pettirosso',
+        category: 'uccello',
+        categoryLabel: 'Uccello',
+        name: 'Pettirosso Europeo',
+        latin: 'Erithacus rubecula (Linnaeus, 1758)',
+        unlockCost: 0,
+        family: 'Muscicapidae',
+        habitat: 'Sottobosco & Radure Umide',
+        wingspan: 'Apertura alare 20 – 22 cm',
+        plumagePrimary: '#6E6152', plumageBreast: '#D6723E', plumageBelly: '#ECE8DF',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Erithacus_rubecula_with_cocked_head.jpg/800px-Erithacus_rubecula_with_cocked_head.jpg',
+        morphology: 'Piccolo passeriforme dal piumaggio bruno-olivastro sul dorso e petto arancio-rossastro caldo.',
+        ecology: 'Canto melodioso e cristallino con gorgheggi variati, udibile nel sottobosco e lungo i sentieri.',
+        ethnobotany: 'Spesso accompagna chi cammina o lavora nel bosco attratto dal movimento della lettiera.'
+      },
+      {
+        id: 'cinciallegra',
+        category: 'uccello',
+        categoryLabel: 'Uccello',
+        name: 'Cinciallegra',
+        latin: 'Parus major Linnaeus, 1758',
+        unlockCost: 90,
+        family: 'Paridae',
+        habitat: 'Boschi di Latifoglie & Radure',
+        wingspan: 'Apertura alare 22 – 25 cm',
+        plumagePrimary: '#526E58', plumageBreast: '#E3BF4B', plumageBelly: '#2A312B',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Parus_major_1_Luc_Viatour.jpg/800px-Parus_major_1_Luc_Viatour.jpg',
+        morphology: 'Cincia vivace con capo nero, guance bianche, dorso verde-oliva e petto giallo con banda scura longitudinale.',
+        ecology: 'Richiamo chiaro e ritmico tra i rami; si nutre di insetti, semi e gemme.',
+        ethnobotany: 'Molto agile nell’esplorare rami sottili e cavità naturali.'
+      },
+      {
+        id: 'merlo',
+        category: 'uccello',
+        categoryLabel: 'Uccello',
+        name: 'Merlo Comune',
+        latin: 'Turdus merula Linnaeus, 1758',
+        unlockCost: 125,
+        family: 'Turdidae',
+        habitat: 'Faggete, Querceti & Siepi',
+        wingspan: 'Apertura alare 34 – 38 cm',
+        plumagePrimary: '#2D332E', plumageBreast: '#3B423C', plumageBelly: '#DBA13B',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Common_Blackbird.jpg/800px-Common_Blackbird.jpg',
+        morphology: 'Turdide slanciato dal piumaggio scuro e becco giallo-arancio vivo nei maschi adulti.',
+        ecology: 'Canto flautato, calmo e musicale, particolarmente suggestivo all’alba e al crepuscolo.',
+        ethnobotany: 'Svolge un ruolo importante nella dispersione dei semi di arbusti e alberi da frutto.'
+      },
+      {
+        id: 'picchio_rosso',
+        category: 'uccello',
+        categoryLabel: 'Uccello',
+        name: 'Picchio Rosso Maggiore',
+        latin: 'Dendrocopos major (Linnaeus, 1758)',
+        unlockCost: 160,
+        family: 'Picidae',
+        habitat: 'Fustaie Mature & Boschi Misti',
+        wingspan: 'Apertura alare 34 – 39 cm',
+        plumagePrimary: '#2A312B', plumageBreast: '#F7F5F0', plumageBelly: '#C4453E',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Dendrocopos_major_1_%28Marek_Szczepanek%29.jpg/800px-Dendrocopos_major_1_%28Marek_Szczepanek%29.jpg',
+        morphology: 'Piumaggio bianco e nero contrastato con macchie scapolari chiare e sottocoda rosso.',
+        ecology: 'Tambureggia rapidamente sui tronchi e si arrampica con l’ausilio della coda rigida.',
+        ethnobotany: 'Scava cavità nei tronchi che poi offrono rifugio anche ad altre specie forestali.'
+      },
+      {
+        id: 'allocco',
+        category: 'uccello',
+        categoryLabel: 'Uccello',
+        name: 'Allocco',
+        latin: 'Strix aluco Linnaeus, 1758',
+        unlockCost: 210,
+        family: 'Strigidae',
+        habitat: 'Boschi Vetusti & Cavità Arboree',
+        wingspan: 'Apertura alare 94 – 104 cm',
+        plumagePrimary: '#7D6A58', plumageBreast: '#A69380', plumageBelly: '#4F4236',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Strix_aluco_2_%28Martin_Mecnarowski%29.jpg/800px-Strix_aluco_2_%28Martin_Mecnarowski%29.jpg',
+        morphology: 'Rapace dal capo arrotondato, piumaggio bruno screziato mimetico e volo silenzioso.',
+        ecology: 'Emette il caratteristico richiamo profondo e modulato nelle ore più tranquille.',
+        ethnobotany: 'Predilige boschi maturi ricchi di grandi alberi con cavità naturali.'
+      },
+      {
+        id: 'aquila_reale',
+        category: 'uccello',
+        categoryLabel: 'Uccello',
+        name: 'Aquila Reale',
+        latin: 'Aquila chrysaetos (Linnaeus, 1758)',
+        unlockCost: 280,
+        family: 'Accipitridae',
+        habitat: 'Vette Alpine, Rupi & Foreste Montane',
+        wingspan: 'Apertura alare 190 – 225 cm',
+        plumagePrimary: '#5E4938', plumageBreast: '#7D624C', plumageBelly: '#C9A86A',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Golden_Eagle_in_flight_-_5.jpg/800px-Golden_Eagle_in_flight_-_5.jpg',
+        morphology: 'Grande rapace dal piumaggio bruno intenso e riflessi dorati sulla nuca, con ampie ali spiegate.',
+        ecology: 'Solca le correnti ascensionali sopra le creste montane e le vallate boscose.',
+        ethnobotany: 'Simbolo di ampiezza di sguardo e maestosità degli ambienti montani.'
+      }
+    ];
+
+    // --- 5 SUONI AMBIENTALI ---
+    const SOUNDS_CATALOG = [
+      { id: 'rain', name: 'Pioggia nel Bosco', icon: 'cloud-rain', unlockCost: 0, desc: 'Gocce morbide che cadono sulle foglie della foresta.' },
+      { id: 'wind', name: 'Vento tra le Fronde', icon: 'wind', unlockCost: 0, desc: 'Brezza lenta che attraversa chiome e rami.' },
+      { id: 'birds', name: 'Canto Uccelli', icon: 'bird', unlockCost: 0, desc: 'Fa cantare naturalmente gli uccelli sbloccati nella tua foresta.' },
+      { id: 'stream', name: 'Ruscello Alpino', icon: 'waves', unlockCost: 70, desc: 'Acqua limpida che scorre tra i ciottoli del sentiero.' },
+      { id: 'fire', name: 'Fuoco Dolce', icon: 'flame', unlockCost: 110, desc: 'Caldo crepitio pacato di legna secca.' },
+      { id: 'brown', name: 'Onda Profonda (Focus)', icon: 'brain', unlockCost: 165, desc: 'Rumore marrone vellutato a bassa frequenza per la concentrazione.' }
+    ];
+
+    // --- 6 RANGHI DEL NATURALISTA ---
+    const NATURALIST_LEVELS = [
+      { level: 1, minXp: 0, title: 'Seme Dormiente', bonusMult: 1.0, perk: 'Accesso alla Foresta Esplorabile e alle 26 specie.' },
+      { level: 2, minXp: 150, title: 'Germoglio di Sottobosco', bonusMult: 1.05, perk: '+5% Semi di Linfa su ogni sessione completata.' },
+      { level: 3, minXp: 400, title: 'Esploratore della Faggeta', bonusMult: 1.10, perk: '+10% Semi di Linfa su ogni sessione completata.' },
+      { level: 4, minXp: 850, title: 'Custode del Bosco Vetusto', bonusMult: 1.15, perk: '+15% Semi di Linfa su tutte le sessioni di studio.' },
+      { level: 5, minXp: 1500, title: 'Naturalista delle Vette', bonusMult: 1.22, perk: '+22% Semi di Linfa e prestigio accademico.' },
+      { level: 6, minXp: 2500, title: 'Spirito della Foresta Primordiale', bonusMult: 1.30, perk: '+30% Semi di Linfa massimo permanente.' }
+    ];
+
+    const BOTANIST_QUESTS = [
+      { id: 'q_first_session', title: 'Prima Semina Zen', desc: 'Completa almeno 1 sessione di studio a schermo intero.', rewardSap: 45, rewardXp: 80, check: st => st.forestHistory.filter(i => i.status === 'alive').length >= 1 },
+      { id: 'q_bird_song', title: 'Richiamo dell’Avifauna', desc: 'Sblocca almeno 2 specie di uccelli nella tua foresta.', rewardSap: 50, rewardXp: 90, check: st => st.unlockedBirds.length >= 2 },
+      { id: 'q_mycology', title: 'Esploratore Micologo', desc: 'Coltiva e porta a maturazione almeno 1 specie di Fungo.', rewardSap: 60, rewardXp: 110, check: st => st.forestHistory.some(i => i.status === 'alive' && getSpeciesById(i.speciesId).category === 'fungo') },
+      { id: 'q_deep_50', title: 'Concentrazione Profonda', desc: 'Accumula almeno 50 minuti totali di studio nella tua foresta.', rewardSap: 90, rewardXp: 160, check: st => st.forestHistory.filter(i => i.status === 'alive').reduce((a, b) => a + b.mins, 0) >= 50 },
+      { id: 'q_shared_glade', title: 'Simbiosi Collettiva', desc: 'Crea o unisciti a una Radura Condivisa con almeno un compagno.', rewardSap: 55, rewardXp: 100, check: () => Boolean(sharedRoom.active) }
+    ];
+
+    // --- STATO & PERSISTENZA ---
+    const STORAGE_KEY = 'sylva_v6_26species_editorial_state';
+    const defaultState = {
+      sapPoints: 180,
+      xp: 60,
+      streakDays: 1,
+      lastStudyDate: null,
+      userName: 'Viandante',
+      selectedSpeciesId: 'faggio',
+      unlockedSpecies: ['faggio', 'felce', 'porcino'],
+      unlockedBirds: ['pettirosso'],
+      unlockedSounds: ['rain', 'wind', 'birds'],
+      claimedQuests: [],
+      forestHistory: []
+    };
+
+    let appState = loadAppState();
+    function loadAppState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { ...defaultState };
+        const parsed = JSON.parse(raw);
+        return {
+          ...defaultState,
+          ...parsed,
+          unlockedBirds: parsed.unlockedBirds || ['pettirosso'],
+          unlockedSounds: Array.from(new Set([...(parsed.unlockedSounds || []), 'rain', 'wind', 'birds']))
+        };
+      } catch (e) {
+        return { ...defaultState };
+      }
+    }
+    function saveAppState() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState)); } catch (e) {}
+    }
+
+    // --- RADURA CONDIVISA ---
+    let sharedRoom = { active: false, code: '', title: '', companions: [] };
+    let roomChannel = null;
+    try {
+      roomChannel = new BroadcastChannel('sylva_shared_glade_v6');
+      roomChannel.onmessage = ev => {
+        const msg = ev.data;
+        if (!sharedRoom.active || !msg || msg.roomCode !== sharedRoom.code) return;
+        if (msg.type === 'JOIN_OR_SYNC') {
+          const exists = sharedRoom.companions.find(c => c.id === msg.peer.id);
+          if (exists) { exists.name = msg.peer.name; exists.speciesId = msg.peer.speciesId; }
+          else {
+            sharedRoom.companions.push(msg.peer);
+            showToast(`${msg.peer.name} si è unito alla tua Radura Condivisa!`, 'info');
+          }
+          renderRoomUI();
+        }
+      };
+    } catch (e) {}
+
+    const SIMULATED_PEERS = [
+      { name: 'Elena', speciesId: 'ciliegio' },
+      { name: 'Lorenzo', speciesId: 'pino_loricato' },
+      { name: 'Sofia', speciesId: 'orchidea_venere' },
+      { name: 'Matteo', speciesId: 'amanita' }
+    ];
+
+    function parseRoomFromUrlHash() {
+      const hash = window.location.hash || '';
+      if (!hash.startsWith('#room=')) return;
+      try {
+        const decoded = JSON.parse(decodeURIComponent(escape(atob(hash.slice(6)))));
+        if (decoded && decoded.code && decoded.title) {
+          joinSharedRoom(decoded.code, decoded.title, decoded.hostName || 'Ospite');
+        }
+      } catch (e) {}
+    }
+
+    function buildRoomInviteUrl(code, title, hostName) {
+      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify({ code, title, hostName }))));
+      return `${window.location.href.split('#')[0]}#room=${encoded}`;
+    }
+
+    function createOrUpdateSharedRoom(titleInput, userNameInput) {
+      const cleanName = (userNameInput || appState.userName || 'Botanico').trim();
+      const cleanTitle = (titleInput || 'Sessione di Studio Condivisa').trim();
+      appState.userName = cleanName;
+      saveAppState();
+
+      const code = sharedRoom.active && sharedRoom.code
+        ? sharedRoom.code
+        : 'RAD-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+
+      sharedRoom = {
+        active: true,
+        code,
+        title: cleanTitle,
+        companions: [{ id: 'self', name: `${cleanName} (Tu)`, speciesId: appState.selectedSpeciesId, isSelf: true }]
+      };
+
+      const inviteUrl = buildRoomInviteUrl(code, cleanTitle, cleanName);
+      window.history.replaceState(null, '', '#room=' + inviteUrl.split('#room=')[1]);
+
+      if (roomChannel) {
+        roomChannel.postMessage({
+          type: 'JOIN_OR_SYNC',
+          roomCode: code,
+          peer: { id: 'peer_' + Date.now(), name: cleanName, speciesId: appState.selectedSpeciesId }
+        });
+      }
+
+      refreshAllUI();
+      showToast(`Radura "${cleanTitle}" creata! Copia il link per invitare amici.`, 'success');
+    }
+
+    function joinSharedRoom(code, title, hostName) {
+      sharedRoom = {
+        active: true,
+        code,
+        title,
+        companions: [
+          { id: 'host', name: hostName, speciesId: 'roverella', isSelf: false },
+          { id: 'self', name: `${appState.userName} (Tu)`, speciesId: appState.selectedSpeciesId, isSelf: true }
+        ]
+      };
+      refreshAllUI();
+      showToast(`Sei entrato nella radura "${title}"! (+25% Bonus Simbiosi)`, 'success');
+    }
+
+    function leaveSharedRoom() {
+      sharedRoom = { active: false, code: '', title: '', companions: [] };
+      window.history.replaceState(null, '', window.location.href.split('#')[0]);
+      refreshAllUI();
+      showToast('Hai lasciato la Radura Condivisa.', 'info');
+    }
+
+    // --- MOTORE AUDIO AMBIENTALE & CANTI UCCELLI (WEB AUDIO API) ---
+    class SylvaAudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.master = null;
+        this.muted = false;
+        this.gains = {};
+        this.volumes = { rain: 0.45, wind: 0.25, birds: 0.55, stream: 0, fire: 0, brown: 0 };
+      }
+
+      init() {
+        if (this.ctx) {
+          if (this.ctx.state === 'suspended') this.ctx.resume();
+          return;
+        }
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioCtx();
+        this.master = this.ctx.createGain();
+        this.master.gain.value = 0.85;
+        this.master.connect(this.ctx.destination);
+
+        this._buildNoise('rain', 'bandpass', 1050, 0.65);
+        this._buildWind();
+        this._buildNoise('stream', 'bandpass', 780, 0.35);
+        this._buildFire();
+        this._buildBrown();
+        this._buildBirdChorus();
+
+        Object.keys(this.volumes).forEach(k => this.setVolume(k, this.volumes[k], false));
+      }
+
+      _noiseBuf(sec = 5) {
+        const len = this.ctx.sampleRate * sec;
+        const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+        const ch = buf.getChannelData(0);
+        for (let i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1;
+        return buf;
+      }
+
+      _buildNoise(key, type, freq, q) {
+        const src = this.ctx.createBufferSource();
+        src.buffer = this._noiseBuf(5);
+        src.loop = true;
+        const f = this.ctx.createBiquadFilter();
+        f.type = type; f.frequency.value = freq; f.Q.value = q;
+        const g = this.ctx.createGain(); g.gain.value = 0;
+        src.connect(f); f.connect(g); g.connect(this.master);
+        src.start();
+        this.gains[key] = g;
+      }
+
+      _buildWind() {
+        const src = this.ctx.createBufferSource();
+        src.buffer = this._noiseBuf(6);
+        src.loop = true;
+        const f = this.ctx.createBiquadFilter();
+        f.type = 'lowpass'; f.frequency.value = 320; f.Q.value = 2.8;
+        const lfo = this.ctx.createOscillator();
+        lfo.frequency.value = 0.12;
+        const lfoG = this.ctx.createGain(); lfoG.gain.value = 170;
+        lfo.connect(lfoG); lfoG.connect(f.frequency); lfo.start();
+        const g = this.ctx.createGain(); g.gain.value = 0;
+        src.connect(f); f.connect(g); g.connect(this.master);
+        src.start();
+        this.gains.wind = g;
+      }
+
+      _buildFire() {
+        const len = this.ctx.sampleRate * 5;
+        const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+        const d = buf.getChannelData(0);
+        let last = 0;
+        for (let i = 0; i < len; i++) {
+          const w = Math.random() * 2 - 1;
+          last = (last + 0.04 * w) / 1.04;
+          const pop = Math.random() > 0.9987 ? (Math.random() * 1.5 - 0.75) : 0;
+          d[i] = last * 2.1 + pop;
+        }
+        const src = this.ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+        const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 880;
+        const g = this.ctx.createGain(); g.gain.value = 0;
+        src.connect(f); f.connect(g); g.connect(this.master);
+        src.start();
+        this.gains.fire = g;
+      }
+
+      _buildBrown() {
+        const len = this.ctx.sampleRate * 5;
+        const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+        const d = buf.getChannelData(0);
+        let last = 0;
+        for (let i = 0; i < len; i++) {
+          const w = Math.random() * 2 - 1;
+          last = (last + 0.02 * w) / 1.02;
+          d[i] = last * 3.0;
+        }
+        const src = this.ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+        const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 240;
+        const g = this.ctx.createGain(); g.gain.value = 0;
+        src.connect(f); f.connect(g); g.connect(this.master);
+        src.start();
+        this.gains.brown = g;
+      }
+
+      _buildBirdChorus() {
+        const g = this.ctx.createGain();
+        g.gain.value = 0;
+        g.connect(this.master);
+        this.gains.birds = g;
+
+        setInterval(() => {
+          if (!this.ctx || this.volumes.birds <= 0.01 || this.muted) return;
+          if (!appState.unlockedBirds || appState.unlockedBirds.length === 0) return;
+          if (Math.random() > 0.35) {
+            const pick = appState.unlockedBirds[Math.floor(Math.random() * appState.unlockedBirds.length)];
+            this.playBirdVocalization(pick, this.gains.birds);
+          }
+        }, 3200);
+      }
+
+      playBirdVocalization(birdId, destNode = null) {
+        this.init();
+        const target = destNode || this.master;
+        const now = this.ctx.currentTime;
+
+        if (birdId === 'pettirosso') {
+          [3200, 3850, 2950, 3600, 4100].forEach((freq, i) => {
+            const t = now + i * 0.11;
+            const osc = this.ctx.createOscillator();
+            const env = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, t);
+            osc.frequency.exponentialRampToValueAtTime(freq * 0.84, t + 0.09);
+            env.gain.setValueAtTime(0.001, t);
+            env.gain.linearRampToValueAtTime(0.16, t + 0.02);
+            env.gain.exponentialRampToValueAtTime(0.001, t + 0.11);
+            osc.connect(env); env.connect(target);
+            osc.start(t); osc.stop(t + 0.12);
+          });
+        } else if (birdId === 'cinciallegra') {
+          [0, 0.32].forEach(offset => {
+            const t = now + offset;
+            const osc = this.ctx.createOscillator();
+            const env = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(4200, t);
+            osc.frequency.setValueAtTime(3150, t + 0.11);
+            env.gain.setValueAtTime(0.001, t);
+            env.gain.linearRampToValueAtTime(0.18, t + 0.02);
+            env.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
+            osc.connect(env); env.connect(target);
+            osc.start(t); osc.stop(t + 0.25);
+          });
+        } else if (birdId === 'merlo') {
+          [1650, 1980, 2200, 1850, 2450].forEach((freq, i) => {
+            const t = now + i * 0.19;
+            const osc = this.ctx.createOscillator();
+            const env = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, t);
+            osc.frequency.linearRampToValueAtTime(freq * 1.06, t + 0.16);
+            env.gain.setValueAtTime(0.001, t);
+            env.gain.linearRampToValueAtTime(0.2, t + 0.04);
+            env.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+            osc.connect(env); env.connect(target);
+            osc.start(t); osc.stop(t + 0.19);
+          });
+        } else if (birdId === 'picchio_rosso') {
+          for (let k = 0; k < 10; k++) {
+            const t = now + k * 0.065;
+            const osc = this.ctx.createOscillator();
+            const env = this.ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(460, t);
+            osc.frequency.exponentialRampToValueAtTime(140, t + 0.04);
+            env.gain.setValueAtTime(0.001, t);
+            env.gain.linearRampToValueAtTime(0.15, t + 0.005);
+            env.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
+            osc.connect(env); env.connect(target);
+            osc.start(t); osc.stop(t + 0.05);
+          }
+        } else if (birdId === 'allocco') {
+          [0, 0.55].forEach((offset, idx) => {
+            const t = now + offset;
+            const dur = idx === 0 ? 0.35 : 0.65;
+            const osc = this.ctx.createOscillator();
+            const env = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(410, t);
+            osc.frequency.exponentialRampToValueAtTime(345, t + dur);
+            env.gain.setValueAtTime(0.001, t);
+            env.gain.linearRampToValueAtTime(0.22, t + 0.08);
+            env.gain.exponentialRampToValueAtTime(0.001, t + dur);
+            osc.connect(env); env.connect(target);
+            osc.start(t); osc.stop(t + dur + 0.02);
+          });
+        } else if (birdId === 'aquila_reale') {
+          const osc = this.ctx.createOscillator();
+          const env = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'bandpass';
+          filter.frequency.value = 2600;
+          osc.frequency.setValueAtTime(2900, now);
+          osc.frequency.exponentialRampToValueAtTime(1950, now + 0.55);
+          env.gain.setValueAtTime(0.001, now);
+          env.gain.linearRampToValueAtTime(0.16, now + 0.06);
+          env.gain.exponentialRampToValueAtTime(0.001, now + 0.58);
+          osc.connect(filter); filter.connect(env); env.connect(target);
+          osc.start(now); osc.stop(now + 0.6);
+        }
+      }
+
+      setVolume(key, val, initCtx = true) {
+        this.volumes[key] = val;
+        if (initCtx) this.init();
+        if (this.gains[key] && this.ctx) {
+          this.gains[key].gain.setTargetAtTime(val * 0.55, this.ctx.currentTime, 0.08);
+        }
+      }
+
+      toggleMute() {
+        this.init();
+        this.muted = !this.muted;
+        this.master.gain.setTargetAtTime(this.muted ? 0 : 0.85, this.ctx.currentTime, 0.1);
+        return this.muted;
+      }
+
+      playCompletionBell() {
+        this.init();
+        [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+          const now = this.ctx.currentTime + i * 0.15;
+          const osc = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now);
+          g.gain.setValueAtTime(0.001, now);
+          g.gain.linearRampToValueAtTime(0.2, now + 0.03);
+          g.gain.exponentialRampToValueAtTime(0.0001, now + 1.5);
+          osc.connect(g); g.connect(this.master);
+          osc.start(now); osc.stop(now + 1.55);
+        });
+      }
+    }
+    const audioEngine = new SylvaAudioEngine();
+
+    // --- MOTORE ILLUSTRATIVO NATURALISTICO & FORESTA ESPLORABILE ---
+    const previewCanvas = document.getElementById('preview-canvas');
+    const previewCtx = previewCanvas.getContext('2d');
+    const zenCanvas = document.getElementById('zen-canvas');
+    const zenCtx = zenCanvas.getContext('2d');
+    const dioramaCanvas = document.getElementById('forest-diorama-canvas');
+    const dioramaCtx = dioramaCanvas.getContext('2d');
+    const panoCanvas = document.getElementById('panoramic-forest-canvas');
+    const panoCtx = panoCanvas.getContext('2d');
+
+    let globalTime = 0;
+    let panoramicOpen = false;
+    let renderedForestNodes = [];
+    let hoveredForestNodeId = null;
+
+    let forestCam = {
+      panX: 0,
+      zoom: 1,
+      isDragging: false,
+      dragStartX: 0,
+      dragStartPanX: 0,
+      hasMoved: false
+    };
+
+    const pollenMotes = Array.from({ length: 42 }, () => ({
+      x: Math.random(),
+      y: Math.random() * 0.85,
+      r: 1.0 + Math.random() * 2.0,
+      vx: (Math.random() - 0.5) * 0.00045,
+      vy: (Math.random() - 0.5) * 0.0003,
+      phase: Math.random() * Math.PI * 2
+    }));
+
+    function getSpeciesById(id) {
+      return SPECIES_CATALOG.find(s => s.id === id) || SPECIES_CATALOG[0];
+    }
+
+    function getBirdById(id) {
+      return BIRDS_CATALOG.find(b => b.id === id) || BIRDS_CATALOG[0];
+    }
+
+    function resizeCanvases() {
+      const dpr = window.devicePixelRatio || 1;
+      [previewCanvas, zenCanvas, dioramaCanvas, panoCanvas].forEach(c => {
+        if (!c || !c.parentElement) return;
+        const rect = c.parentElement.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          c.width = rect.width * dpr;
+          c.height = rect.height * dpr;
+          c.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+      });
+    }
+    window.addEventListener('resize', resizeCanvases);
+
+    function seededRandom(seed) {
+      const x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
+      return x - Math.floor(x);
+    }
+
+    /**
+     * Disegna uccelli sbloccati in volo con piumaggio curato, coda, becco e ali in movimento fluido
+     */
+    function drawUnlockedBirdsInSky(ctx, w, h, maxBirds = 6, collectHitboxes = false, panOffset = 0, zoom = 1) {
+      const birds = appState.unlockedBirds.slice(0, maxBirds);
+      const birdHits = [];
+
+      birds.forEach((bId, idx) => {
+        const b = getBirdById(bId);
+        const speed = 0.036 + idx * 0.009;
+        const progress = (globalTime * speed + idx * 0.29) % 1.25 - 0.12;
+        const bx = progress * w * zoom + panOffset * 0.55;
+        const by = h * (0.17 + (idx % 3) * 0.085) + Math.sin(globalTime * 2.0 + idx * 2) * 11;
+        const wingFlap = Math.sin(globalTime * (6.2 + idx * 0.7) + idx) * 9;
+        const scale = (b.id === 'aquila_reale' ? 1.45 : (b.id === 'allocco' ? 1.18 : 0.95)) * Math.max(0.85, zoom * 0.9);
+
+        const nodeId = `bird_${b.id}`;
+        const isHovered = hoveredForestNodeId === nodeId;
+
+        ctx.save();
+        ctx.translate(bx, by);
+        ctx.scale(scale, scale);
+
+        if (isHovered) {
+          ctx.strokeStyle = 'rgba(78, 107, 83, 0.55)';
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.arc(0, 0, 24, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        // Coda a ventaglio morbido
+        ctx.fillStyle = b.plumagePrimary;
+        ctx.beginPath();
+        ctx.moveTo(-10, 0);
+        ctx.lineTo(-22, -4.5);
+        ctx.lineTo(-21, 5.5);
+        ctx.closePath();
+        ctx.fill();
+
+        // Corpo affusolato con sfumatura
+        const bodyGrad = ctx.createLinearGradient(0, -5, 0, 6);
+        bodyGrad.addColorStop(0, b.plumagePrimary);
+        bodyGrad.addColorStop(0.65, b.plumageBreast);
+        bodyGrad.addColorStop(1, b.plumageBelly);
+        ctx.fillStyle = bodyGrad;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 12, 5.2, -0.08, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Capo & becco
+        ctx.fillStyle = b.plumagePrimary;
+        ctx.beginPath();
+        ctx.arc(10.5, -2.2, 4.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#B89558';
+        ctx.beginPath();
+        ctx.moveTo(14.5, -3.2);
+        ctx.lineTo(19.5, -1.6);
+        ctx.lineTo(14.5, -0.4);
+        ctx.closePath();
+        ctx.fill();
+
+        // Occhio
+        ctx.fillStyle = '#2A312B';
+        ctx.beginPath();
+        ctx.arc(11.8, -2.8, 1.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Ali battenti con curva armoniosa
+        ctx.strokeStyle = b.plumagePrimary;
+        ctx.lineWidth = 2.8;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-1, -2);
+        ctx.quadraticCurveTo(-7, -11 + wingFlap, -16, -6.5 + wingFlap * 1.15);
+        ctx.moveTo(2, -1.5);
+        ctx.quadraticCurveTo(-3, -12 + wingFlap, -12, -8.5 + wingFlap * 1.15);
+        ctx.stroke();
+
+        ctx.restore();
+
+        if (collectHitboxes) {
+          birdHits.push({
+            nodeId,
+            kind: 'bird',
+            x: bx,
+            y: by,
+            r: 25 * scale,
+            bird: b
+          });
+        }
+      });
+
+      return birdHits;
+    }
+
+    /**
+     * Ritratto ornitologico dettagliato su tavola chiara nella scheda enciclopedica
+     */
+    function drawBirdPortraitPlate(ctx, canvasEl, bird) {
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvasEl.width / dpr;
+      const h = canvasEl.height / dpr;
+      ctx.clearRect(0, 0, w, h);
+
+      const bg = ctx.createLinearGradient(0, 0, 0, h);
+      bg.addColorStop(0, '#F7F5F0');
+      bg.addColorStop(1, '#E8E3D7');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+
+      // Ramo con corteccia e piccoli nodi
+      ctx.strokeStyle = '#7D6A58';
+      ctx.lineWidth = 7.5;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(w * 0.10, h * 0.78);
+      ctx.quadraticCurveTo(w * 0.5, h * 0.70, w * 0.90, h * 0.75);
+      ctx.stroke();
+
+      // Foglie salvia lungo il ramo
+      ctx.fillStyle = '#5F7F64';
+      ctx.beginPath();
+      ctx.ellipse(w * 0.20, h * 0.73, 15, 6.2, -0.48, 0, Math.PI * 2);
+      ctx.ellipse(w * 0.80, h * 0.71, 15, 6.2, 0.42, 0, Math.PI * 2);
+      ctx.fill();
+
+      const cx = w * 0.5;
+      const cy = h * 0.54;
+      const sc = Math.min(w, h) / 220;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(sc, sc);
+
+      // Coda sfumata
+      ctx.fillStyle = bird.plumagePrimary;
+      ctx.beginPath();
+      ctx.moveTo(-20, 12); ctx.lineTo(-58, 39); ctx.lineTo(-47, 46); ctx.lineTo(-13, 20);
+      ctx.closePath(); ctx.fill();
+
+      // Zampe appoggiate al ramo
+      ctx.strokeStyle = '#8C7862';
+      ctx.lineWidth = 2.4;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-4, 24); ctx.lineTo(-6, 42); ctx.lineTo(-12, 43);
+      ctx.moveTo(8, 24); ctx.lineTo(7, 42); ctx.lineTo(13, 43);
+      ctx.stroke();
+
+      // Ventre
+      ctx.fillStyle = bird.plumageBelly;
+      ctx.beginPath();
+      ctx.ellipse(0, 4, 26, 22, -0.25, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Dorso
+      ctx.fillStyle = bird.plumagePrimary;
+      ctx.beginPath();
+      ctx.ellipse(-4, -2, 25, 19, -0.35, Math.PI * 0.7, Math.PI * 2.15);
+      ctx.fill();
+
+      // Capo
+      ctx.beginPath();
+      ctx.arc(14, -20, 15, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Petto con sfumatura naturale
+      const breastGrad = ctx.createLinearGradient(10, -14, 18, 12);
+      breastGrad.addColorStop(0, bird.plumageBreast);
+      breastGrad.addColorStop(1, bird.plumageBelly);
+      ctx.fillStyle = breastGrad;
+      ctx.beginPath();
+      ctx.ellipse(13, -3, 14, 16, 0.15, -0.6, Math.PI * 0.85);
+      ctx.fill();
+
+      // Ala con accenno di penne
+      ctx.fillStyle = bird.plumagePrimary;
+      ctx.beginPath();
+      ctx.ellipse(-9, 3, 22, 10.5, -0.35, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = 'rgba(252, 251, 248, 0.25)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(-22, 5); ctx.lineTo(4, 1);
+      ctx.stroke();
+
+      // Becco
+      ctx.fillStyle = '#B89558';
+      ctx.beginPath();
+      ctx.moveTo(27, -22); ctx.lineTo(42, -19); ctx.lineTo(27, -15.5);
+      ctx.closePath(); ctx.fill();
+
+      // Occhio vivo
+      ctx.fillStyle = '#2A312B';
+      ctx.beginPath();
+      ctx.arc(19, -22, 3.3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#FCFBF8';
+      ctx.beginPath();
+      ctx.arc(20.2, -23.2, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    /**
+     * Scena di crescita (Anteprima Studio & Schermo Intero Zen)
+     */
+    function renderHyperRealisticForest(ctx, canvasEl, progress, mode = 'preview', overrideSpeciesId = null) {
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvasEl.width / dpr;
+      const h = canvasEl.height / dpr;
+      if (w <= 0 || h <= 0) return;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const species = getSpeciesById(overrideSpeciesId || appState.selectedSpeciesId);
+      const p = Math.max(0.05, Math.min(1, progress));
+      const isZen = mode === 'zen';
+
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+      skyGrad.addColorStop(0, '#E3E6DD');
+      skyGrad.addColorStop(0.55, '#EFECE4');
+      skyGrad.addColorStop(1, '#E2E7DC');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.save();
+      const rayAlpha = 0.14 + p * 0.12;
+      for (let r = 0; r < 3; r++) {
+        const rx = w * (0.25 + r * 0.22);
+        const rayGrad = ctx.createLinearGradient(rx, 0, rx + w * 0.14, h * 0.85);
+        rayGrad.addColorStop(0, `rgba(255, 252, 240, ${rayAlpha})`);
+        rayGrad.addColorStop(1, 'rgba(255, 252, 240, 0)');
+        ctx.fillStyle = rayGrad;
+        ctx.beginPath();
+        ctx.moveTo(rx - 28, 0);
+        ctx.lineTo(rx + 48, 0);
+        ctx.lineTo(rx + w * 0.2, h * 0.85);
+        ctx.lineTo(rx + w * 0.04, h * 0.85);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+
+      ctx.fillStyle = 'rgba(138, 163, 141, 0.22)';
+      ctx.beginPath();
+      ctx.moveTo(0, h * 0.72);
+      ctx.quadraticCurveTo(w * 0.3, h * 0.56, w * 0.65, h * 0.68);
+      ctx.quadraticCurveTo(w * 0.85, h * 0.74, w, h * 0.62);
+      ctx.lineTo(w, h); ctx.lineTo(0, h);
+      ctx.closePath(); ctx.fill();
+
+      if (!overrideSpeciesId) {
+        drawUnlockedBirdsInSky(ctx, w, h, isZen ? 6 : 3);
+      }
+
+      const groundY = isZen ? h * 0.83 : h * 0.85;
+      const soilGrad = ctx.createLinearGradient(0, groundY - 22, 0, h);
+      soilGrad.addColorStop(0, '#B9C7B4');
+      soilGrad.addColorStop(0.35, '#99AD95');
+      soilGrad.addColorStop(1, '#788F76');
+      ctx.fillStyle = soilGrad;
+      ctx.beginPath();
+      ctx.moveTo(0, groundY + 14);
+      ctx.quadraticCurveTo(w * 0.5, groundY - 26, w, groundY + 14);
+      ctx.lineTo(w, h); ctx.lineTo(0, h);
+      ctx.closePath(); ctx.fill();
+
+      const sway = Math.sin(globalTime * 1.2) * (2.5 + p * 6);
+      const bladeCount = isZen ? 80 : 38;
+      for (let i = 0; i <= bladeCount; i++) {
+        const ratio = i / bladeCount;
+        const gx = w * ratio;
+        const hill = Math.sin(ratio * Math.PI) * 18;
+        const gy = groundY + 11 - hill;
+        const bH = (9 + (i % 5) * 4.5) * (0.6 + p * 0.6);
+        ctx.strokeStyle = i % 2 === 0 ? 'rgba(78, 107, 83, 0.5)' : 'rgba(95, 127, 100, 0.4)';
+        ctx.lineWidth = 1.3;
+        ctx.beginPath();
+        ctx.moveTo(gx, gy);
+        ctx.quadraticCurveTo(gx + sway * 0.4, gy - bH * 0.55, gx + sway * (0.8 + (i % 3) * 0.2), gy - bH);
+        ctx.stroke();
+      }
+
+      const centerX = w * 0.5;
+      const baseY = groundY - 6;
+      const mainScale = isZen ? Math.min(w, h) / 540 : Math.min(w, h) / 340;
+
+      if (isZen && sharedRoom.active && sharedRoom.companions.length > 1) {
+        const peers = sharedRoom.companions.filter(c => !c.isSelf);
+        const offsets = [-0.26, 0.26, -0.39, 0.39];
+        peers.slice(0, 4).forEach((peer, idx) => {
+          const px = w * (0.5 + offsets[idx]);
+          const py = groundY + 4;
+          const peerSp = getSpeciesById(peer.speciesId);
+          drawDetailedBotanicalSpecimen(ctx, px, py, p * 0.92, peerSp, sway * 0.85, mainScale * 0.62, idx + 10);
+
+          ctx.save();
+          ctx.font = '600 11px "Plus Jakarta Sans", sans-serif';
+          ctx.fillStyle = 'rgba(42, 49, 43, 0.72)';
+          ctx.textAlign = 'center';
+          ctx.fillText(peer.name, px, py + 22);
+          ctx.restore();
+        });
+      }
+
+      drawDetailedBotanicalSpecimen(ctx, centerX, baseY, p, species, sway, mainScale, 1);
+
+      const particleCount = isZen ? Math.floor(14 + p * 24) : Math.floor(8 + p * 12);
+      for (let i = 0; i < particleCount; i++) {
+        const f = pollenMotes[i];
+        f.x += f.vx; f.y += f.vy;
+        if (f.x < 0.03 || f.x > 0.97) f.vx *= -1;
+        if (f.y < 0.06 || f.y > 0.84) f.vy *= -1;
+
+        const alpha = (0.25 + 0.55 * Math.sin(globalTime * 1.9 + f.phase)) * (0.35 + p * 0.65);
+        ctx.fillStyle = `rgba(194, 166, 97, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(f.x * w, f.y * h, f.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    /**
+     * Foresta Esplorabile Completa (Diorama & Passeggiata Panoramica)
+     */
+    function renderLivingDigitalForest(ctx, canvasEl, isPanoramic = false) {
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvasEl.width / dpr;
+      const h = canvasEl.height / dpr;
+      if (w <= 0 || h <= 0) return;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const zoom = forestCam.zoom;
+      const pan = forestCam.panX;
+
+      const sky = ctx.createLinearGradient(0, 0, 0, h);
+      sky.addColorStop(0, '#DFE4DA');
+      sky.addColorStop(0.5, '#EFECE4');
+      sky.addColorStop(1, '#DCE3D5');
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, w, h);
+
+      const sunX = w * 0.78 + pan * 0.06;
+      const sunY = h * 0.22;
+      const sunGlow = ctx.createRadialGradient(sunX, sunY, 8, sunX, sunY, 110);
+      sunGlow.addColorStop(0, 'rgba(255, 252, 242, 0.85)');
+      sunGlow.addColorStop(0.45, 'rgba(235, 224, 195, 0.35)');
+      sunGlow.addColorStop(1, 'rgba(235, 224, 195, 0)');
+      ctx.fillStyle = sunGlow;
+      ctx.beginPath();
+      ctx.arc(sunX, sunY, 110, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(138, 163, 141, 0.28)';
+      ctx.beginPath();
+      ctx.moveTo(-w, h);
+      for (let x = -w; x <= w * 2; x += 140) {
+        const px = x + pan * 0.14;
+        const peakY = h * (0.48 + Math.sin(x * 0.004) * 0.08 + Math.cos(x * 0.009) * 0.04);
+        ctx.lineTo(px, peakY);
+      }
+      ctx.lineTo(w * 2, h); ctx.lineTo(-w, h);
+      ctx.closePath(); ctx.fill();
+
+      ctx.fillStyle = 'rgba(118, 150, 123, 0.36)';
+      ctx.beginPath();
+      ctx.moveTo(-w, h);
+      for (let x = -w; x <= w * 2; x += 100) {
+        const px = x + pan * 0.28;
+        const hillY = h * (0.60 + Math.cos(x * 0.006 + 1.2) * 0.05);
+        ctx.lineTo(px, hillY);
+      }
+      ctx.lineTo(w * 2, h); ctx.lineTo(-w, h);
+      ctx.closePath(); ctx.fill();
+
+      const birdHits = drawUnlockedBirdsInSky(ctx, w, h, 6, true, pan, zoom);
+
+      const backGroundY = h * 0.68;
+      const frontGroundY = h * 0.85;
+
+      ctx.fillStyle = '#B4C4B0';
+      ctx.beginPath();
+      ctx.moveTo(-w, backGroundY);
+      ctx.quadraticCurveTo(w * 0.35 + pan * 0.5, backGroundY - 24, w * 0.75 + pan * 0.5, backGroundY + 12);
+      ctx.lineTo(w * 2, backGroundY - 8);
+      ctx.lineTo(w * 2, h); ctx.lineTo(-w, h);
+      ctx.closePath(); ctx.fill();
+
+      const streamCenter = w * 0.48 + pan * 0.85;
+      const streamGrad = ctx.createLinearGradient(0, backGroundY, 0, h);
+      streamGrad.addColorStop(0, 'rgba(154, 189, 184, 0.55)');
+      streamGrad.addColorStop(1, 'rgba(125, 166, 161, 0.85)');
+      ctx.fillStyle = streamGrad;
+      ctx.beginPath();
+      ctx.moveTo(streamCenter - 16 * zoom, backGroundY + 4);
+      ctx.quadraticCurveTo(streamCenter + 45 * zoom, (backGroundY + frontGroundY) * 0.5, streamCenter - 25 * zoom, h);
+      ctx.lineTo(streamCenter + 55 * zoom, h);
+      ctx.quadraticCurveTo(streamCenter + 95 * zoom, (backGroundY + frontGroundY) * 0.5, streamCenter + 14 * zoom, backGroundY + 4);
+      ctx.closePath(); ctx.fill();
+
+      const fgGrad = ctx.createLinearGradient(0, frontGroundY - 14, 0, h);
+      fgGrad.addColorStop(0, '#9EB39B');
+      fgGrad.addColorStop(1, '#7D967A');
+      ctx.fillStyle = fgGrad;
+      ctx.beginPath();
+      ctx.moveTo(-w, frontGroundY + 6);
+      ctx.quadraticCurveTo(w * 0.5 + pan, frontGroundY - 16, w * 2, frontGroundY + 6);
+      ctx.lineTo(w * 2, h); ctx.lineTo(-w, h);
+      ctx.closePath(); ctx.fill();
+
+      ctx.strokeStyle = 'rgba(216, 203, 184, 0.55)';
+      ctx.lineWidth = 22 * zoom;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-w * 0.5 + pan, frontGroundY + 18);
+      ctx.quadraticCurveTo(w * 0.5 + pan, frontGroundY - 2, w * 1.5 + pan, frontGroundY + 22);
+      ctx.stroke();
+
+      const itemsToRender = appState.forestHistory.length > 0
+        ? appState.forestHistory.slice(0, 36)
+        : [
+            { id: 'demo_1', speciesId: 'faggio', tag: 'Seme Fondatore della Riserva', mins: 25, date: 'Esemplare Fondatore', status: 'alive' },
+            { id: 'demo_2', speciesId: 'felce', tag: 'Sottobosco Spontaneo', mins: 15, date: 'Esemplare Fondatore', status: 'alive' },
+            { id: 'demo_3', speciesId: 'porcino', tag: 'Simbiosi Micorrizica', mins: 20, date: 'Esemplare Fondatore', status: 'alive' }
+          ];
+
+      const worldSpan = Math.max(w * 1.35, itemsToRender.length * 115);
+      const nodes = [...birdHits];
+      const sway = Math.sin(globalTime * 1.1) * 3.2;
+
+      const positioned = itemsToRender.map((entry, idx) => {
+        const normX = itemsToRender.length === 1
+          ? 0.5
+          : (idx / (itemsToRender.length - 1)) * 0.84 + 0.08 + (seededRandom(idx * 13) - 0.5) * 0.05;
+        const depth = seededRandom(idx * 29 + 7);
+        const parallaxFactor = 0.65 + depth * 0.35;
+        const worldX = (normX - 0.5) * worldSpan * zoom + w * 0.5 + pan * parallaxFactor;
+        const py = backGroundY + 8 + depth * (frontGroundY - backGroundY + 8);
+        const sc = (isPanoramic ? 0.56 : 0.42) * (0.68 + depth * 0.5) * zoom;
+        return { entry, idx, px: worldX, py, depth, sc };
+      }).sort((a, b) => a.depth - b.depth);
+
+      positioned.forEach(item => {
+        if (item.px < -180 || item.px > w + 180) return;
+        const sp = getSpeciesById(item.entry.speciesId);
+        const nodeId = `plant_${item.entry.id}`;
+        const isHovered = hoveredForestNodeId === nodeId;
+
+        if (isHovered) {
+          ctx.save();
+          const halo = ctx.createRadialGradient(item.px, item.py - 28 * item.sc, 4, item.px, item.py - 28 * item.sc, 64 * item.sc);
+          halo.addColorStop(0, 'rgba(252, 251, 248, 0.68)');
+          halo.addColorStop(1, 'rgba(252, 251, 248, 0)');
+          ctx.fillStyle = halo;
+          ctx.beginPath();
+          ctx.arc(item.px, item.py - 28 * item.sc, 64 * item.sc, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        if (item.entry.status === 'withered') {
+          drawWitheredSpecimen(ctx, item.px, item.py, item.sc);
+        } else {
+          drawDetailedBotanicalSpecimen(ctx, item.px, item.py, 0.94, sp, sway * (0.6 + item.depth * 0.4), item.sc, item.idx + 5);
+        }
+
+        nodes.push({
+          nodeId,
+          kind: 'plant',
+          x: item.px,
+          y: item.py - 28 * item.sc,
+          r: Math.max(24, 42 * item.sc),
+          entry: item.entry,
+          species: sp
+        });
+      });
+
+      renderedForestNodes = nodes;
+
+      for (let i = 0; i < 20; i++) {
+        const f = pollenMotes[i];
+        const px = ((f.x + globalTime * 0.008 * (i % 2 === 0 ? 1 : -1)) % 1 + 1) % 1 * w;
+        const py = f.y * h;
+        const alpha = 0.25 + 0.5 * Math.sin(globalTime * 1.8 + f.phase);
+        ctx.fillStyle = `rgba(194, 166, 97, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(px, py, f.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawWitheredSpecimen(ctx, x, y, sc) {
+      ctx.save();
+      ctx.strokeStyle = '#7D7265';
+      ctx.lineWidth = Math.max(2, 5 * sc);
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.quadraticCurveTo(x + 4 * sc, y - 18 * sc, x + 10 * sc, y - 28 * sc);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#9C8F7E';
+      ctx.lineWidth = Math.max(1.2, 2.5 * sc);
+      ctx.beginPath();
+      ctx.moveTo(x + 3 * sc, y - 14 * sc);
+      ctx.lineTo(x - 8 * sc, y - 22 * sc);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    /**
+     * Disegna ogni specie con sfumature cromatiche, venature, nodi e dettagli anatomici armoniosi
+     */
+    function drawDetailedBotanicalSpecimen(ctx, x, y, p, sp, sway, sc, seedOffset = 1) {
+      ctx.save();
+
+      const shadowW = (24 + p * 66) * sc;
+      const shGrad = ctx.createRadialGradient(x, y + 3, 2, x, y + 3, shadowW);
+      shGrad.addColorStop(0, 'rgba(42, 49, 43, 0.26)');
+      shGrad.addColorStop(1, 'rgba(42, 49, 43, 0)');
+      ctx.fillStyle = shGrad;
+      ctx.beginPath();
+      ctx.ellipse(x, y + 3, shadowW, 8 * sc, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (p < 0.13) {
+        const h = (24 + (p / 0.13) * 34) * sc;
+        ctx.strokeStyle = '#5F7F64';
+        ctx.lineWidth = 3 * sc;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.quadraticCurveTo(x + sway * 0.25, y - h * 0.5, x + sway * 0.5, y - h);
+        ctx.stroke();
+
+        ctx.fillStyle = '#76967B';
+        ctx.beginPath();
+        ctx.ellipse(x + sway * 0.5 - 9 * sc, y - h, 10 * sc, 4.5 * sc, -0.35, 0, Math.PI * 2);
+        ctx.ellipse(x + sway * 0.5 + 9 * sc, y - h, 10 * sc, 4.5 * sc, 0.35, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        return;
+      }
+
+      if (sp.category === 'albero') {
+        drawRealisticTree(ctx, x, y, p, sp, sway, sc, seedOffset);
+      } else if (sp.category === 'pianta') {
+        drawRealisticPlant(ctx, x, y, p, sp, sway, sc);
+      } else if (sp.category === 'fungo') {
+        drawRealisticMushroom(ctx, x, y, p, sp, sway, sc);
+      }
+
+      ctx.restore();
+    }
+
+    function drawRealisticTree(ctx, x, y, p, sp, sway, sc, seed) {
+      const trunkH = (82 + p * 185) * sc;
+      const baseW = (9 + p * 22) * sc;
+      const topX = x + sway * 0.65;
+      const topY = y - trunkH;
+
+      if (p > 0.25) {
+        ctx.strokeStyle = sp.barkDark;
+        ctx.lineCap = 'round';
+        [-1, -0.4, 0.45, 1].forEach((dir, idx) => {
+          ctx.lineWidth = Math.max(1.4, baseW * (0.28 - idx * 0.03));
+          ctx.beginPath();
+          ctx.moveTo(x + dir * baseW * 0.3, y - 6 * sc);
+          ctx.quadraticCurveTo(x + dir * baseW * 1.1, y + 1, x + dir * baseW * (1.7 + p * 0.6), y + 4 * sc);
+          ctx.stroke();
+        });
+
+        ctx.fillStyle = 'rgba(95, 127, 100, 0.52)';
+        ctx.beginPath();
+        ctx.ellipse(x, y + 1, baseW * 1.15, 4.5 * sc, 0, Math.PI, Math.PI * 2);
+        ctx.fill();
+      }
+
+      const trunkGrad = ctx.createLinearGradient(x - baseW, y, x + baseW, y);
+      trunkGrad.addColorStop(0, sp.barkDark);
+      trunkGrad.addColorStop(0.38, sp.barkBase);
+      trunkGrad.addColorStop(0.75, sp.barkLight);
+      trunkGrad.addColorStop(1, sp.barkDark);
+
+      ctx.fillStyle = trunkGrad;
+      ctx.beginPath();
+      ctx.moveTo(x - baseW * 0.72, y + 2);
+      ctx.bezierCurveTo(x - baseW * 0.35, y - trunkH * 0.45, topX - baseW * 0.22, topY + trunkH * 0.2, topX - baseW * 0.14, topY);
+      ctx.lineTo(topX + baseW * 0.14, topY);
+      ctx.bezierCurveTo(topX + baseW * 0.22, topY + trunkH * 0.2, x + baseW * 0.35, y - trunkH * 0.45, x + baseW * 0.72, y + 2);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.save();
+      ctx.strokeStyle = sp.barkDark;
+      ctx.globalAlpha = 0.38;
+      ctx.lineWidth = Math.max(1, 1.2 * sc);
+      const marks = Math.floor(8 + p * 14);
+      for (let m = 0; m < marks; m++) {
+        const t = (m + 0.5) / marks;
+        const mx = x + (topX - x) * t + (seededRandom(seed + m) - 0.5) * baseW * 0.45;
+        const my = y - trunkH * t * 0.85;
+        ctx.beginPath();
+        if (sp.renderType === 'tree_blossom' || sp.renderType === 'tree_birch') {
+          ctx.moveTo(mx - 4.5 * sc, my); ctx.lineTo(mx + 4.5 * sc, my);
+        } else {
+          ctx.moveTo(mx, my); ctx.lineTo(mx + (seededRandom(seed + m * 3) - 0.5) * 3 * sc, my - 12 * sc);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      const canopyAnchors = [{ x: topX, y: topY, r: (34 + p * 74) * sc }];
+
+      if (sp.renderType === 'tree_pine' || sp.renderType === 'tree_fir') {
+        const tiers = Math.floor(4 + p * 5);
+        for (let t = 0; t < tiers; t++) {
+          const ratio = t / tiers;
+          const ty = topY + ratio * trunkH * 0.72;
+          const tx = x + (topX - x) * (1 - ratio * 0.72);
+          const span = (26 + ratio * 78) * p * sc;
+
+          ctx.strokeStyle = sp.barkDark;
+          ctx.lineWidth = Math.max(1.4, (4.2 - ratio * 2) * sc);
+          ctx.beginPath();
+          ctx.moveTo(tx, ty); ctx.quadraticCurveTo(tx - span * 0.5, ty + 6 * sc, tx - span + sway * 0.2, ty + 2 * sc);
+          ctx.moveTo(tx, ty); ctx.quadraticCurveTo(tx + span * 0.5, ty + 6 * sc, tx + span + sway * 0.2, ty + 2 * sc);
+          ctx.stroke();
+
+          const tufts = Math.floor(7 + ratio * 9);
+          for (let k = 0; k <= tufts; k++) {
+            const u = (k / tufts) * 2 - 1;
+            const lx = tx + u * span + sway * 0.25;
+            const ly = ty + Math.abs(u) * 5 * sc;
+            const tuftR = (11 + (1 - Math.abs(u) * 0.4) * 12) * sc * (0.6 + p * 0.4);
+            ctx.fillStyle = sp.foliagePalette[(t + k) % sp.foliagePalette.length];
+            ctx.beginPath();
+            ctx.ellipse(lx, ly, tuftR, tuftR * 0.62, u * 0.25, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      } else {
+        const branches = [
+          { hRatio: 0.52, angle: -0.68, len: 0.42 },
+          { hRatio: 0.60, angle: 0.65, len: 0.40 },
+          { hRatio: 0.74, angle: -0.45, len: 0.34 },
+          { hRatio: 0.78, angle: 0.48, len: 0.32 }
+        ];
+
+        branches.forEach((b, idx) => {
+          if (p < 0.22 + idx * 0.06) return;
+          const bx = x + (topX - x) * b.hRatio;
+          const by = y - trunkH * b.hRatio;
+          const bLen = trunkH * b.len;
+          const ex = bx + Math.sin(b.angle) * bLen + sway * 0.45;
+          const ey = by - Math.cos(b.angle) * bLen * 0.82;
+
+          ctx.strokeStyle = sp.barkBase;
+          ctx.lineWidth = Math.max(1.4, baseW * 0.26);
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(bx, by);
+          ctx.quadraticCurveTo((bx + ex) * 0.5, by - bLen * 0.18, ex, ey);
+          ctx.stroke();
+
+          canopyAnchors.push({ x: ex, y: ey, r: (24 + p * 52) * sc });
+        });
+
+        canopyAnchors.forEach((anc, aIdx) => {
+          const shadowCloud = ctx.createRadialGradient(anc.x, anc.y + 5 * sc, anc.r * 0.15, anc.x, anc.y + 4 * sc, anc.r);
+          shadowCloud.addColorStop(0, sp.foliagePalette[1]);
+          shadowCloud.addColorStop(1, sp.foliagePalette[0]);
+          ctx.fillStyle = shadowCloud;
+          ctx.beginPath();
+          ctx.arc(anc.x, anc.y + 4 * sc, anc.r * 0.95, 0, Math.PI * 2);
+          ctx.fill();
+
+          const leafCount = Math.floor(42 + p * 62);
+          for (let l = 0; l < leafCount; l++) {
+            const r1 = seededRandom(seed * 100 + aIdx * 50 + l);
+            const r2 = seededRandom(seed * 200 + aIdx * 70 + l);
+            const ang = r1 * Math.PI * 2;
+            const dist = Math.sqrt(r2) * anc.r;
+            const lx = anc.x + Math.cos(ang) * dist;
+            const ly = anc.y + Math.sin(ang) * dist * 0.85;
+
+            const sunFactor = (anc.y - ly) / anc.r;
+            const colIdx = sunFactor > 0.28 ? 3 : (sunFactor > -0.12 ? 2 : 1);
+            ctx.fillStyle = sp.foliagePalette[colIdx % sp.foliagePalette.length];
+
+            ctx.beginPath();
+            ctx.ellipse(lx, ly, (4.4 + p * 2.5) * sc, (2.5 + p * 1.4) * sc, ang + 0.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          if (p > 0.65) {
+            for (let f = 0; f < 6; f++) {
+              const fa = (f / 6) * Math.PI * 2 + aIdx;
+              const fx = anc.x + Math.cos(fa) * anc.r * 0.62;
+              const fy = anc.y + Math.sin(fa) * anc.r * 0.55;
+              ctx.fillStyle = sp.accentColor;
+              ctx.beginPath();
+              ctx.arc(fx, fy, 3.1 * sc, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+        });
+      }
+    }
+
+    function drawRealisticPlant(ctx, x, y, p, sp, sway, sc) {
+      if (sp.renderType === 'plant_fern') {
+        const fronds = Math.floor(6 + p * 8);
+        for (let f = 0; f < fronds; f++) {
+          const ratio = f / (fronds - 1);
+          const ang = -Math.PI * 0.88 + ratio * (Math.PI * 0.76);
+          const len = (50 + (1 - Math.abs(ratio - 0.5)) * 45 + p * 105) * sc;
+          const ex = x + Math.cos(ang) * len + sway * 0.7;
+          const ey = y + Math.sin(ang) * len;
+          const cx = x + Math.cos(ang) * len * 0.45;
+          const cy = y + Math.sin(ang) * len * 0.88 - 14 * sc;
+
+          ctx.strokeStyle = sp.barkLight;
+          ctx.lineWidth = (2.2 + p * 1.5) * sc;
+          ctx.beginPath();
+          ctx.moveTo(x, y); ctx.quadraticCurveTo(cx, cy, ex, ey);
+          ctx.stroke();
+
+          const steps = 14;
+          for (let s = 2; s < steps; s++) {
+            const t = s / steps;
+            const px = (1 - t) * (1 - t) * x + 2 * (1 - t) * t * cx + t * t * ex;
+            const py = (1 - t) * (1 - t) * y + 2 * (1 - t) * t * cy + t * t * ey;
+            const pinnaLen = Math.sin(t * Math.PI) * (16 + p * 14) * sc;
+
+            [-1, 1].forEach(side => {
+              ctx.fillStyle = sp.foliagePalette[(s + f) % sp.foliagePalette.length];
+              ctx.beginPath();
+              ctx.ellipse(
+                px + Math.cos(ang + side * 1.15) * pinnaLen * 0.5,
+                py + Math.sin(ang + side * 1.15) * pinnaLen * 0.5,
+                pinnaLen * 0.55, 2.8 * sc, ang + side * 1.15, 0, Math.PI * 2
+              );
+              ctx.fill();
+            });
+          }
+        }
+        return;
+      }
+
+      const stemH = (60 + p * 135) * sc;
+      const topX = x + sway * 0.6;
+      const topY = y - stemH;
+
+      ctx.strokeStyle = sp.barkBase;
+      ctx.lineWidth = (3.6 + p * 2.0) * sc;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(x, y); ctx.quadraticCurveTo(x + sway * 0.25, y - stemH * 0.5, topX, topY);
+      ctx.stroke();
+
+      const leafPairs = sp.renderType === 'plant_gentian' ? 3 : 2;
+      for (let lp = 0; lp < leafPairs; lp++) {
+        const ly = y - stemH * (0.22 + lp * 0.22);
+        const lx = x + sway * (0.12 * lp);
+        [-1, 1].forEach(dir => {
+          const lw = (28 + p * 24 - lp * 4) * sc;
+          const lh = (10 + p * 8) * sc;
+          ctx.fillStyle = sp.foliagePalette[lp % sp.foliagePalette.length];
+          ctx.beginPath();
+          ctx.ellipse(lx + dir * lw * 0.85, ly - 5 * sc, lw, lh, dir * -0.45, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Venatura centrale delicata della foglia
+          ctx.strokeStyle = 'rgba(252, 251, 248, 0.28)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(lx, ly - 2 * sc);
+          ctx.lineTo(lx + dir * lw * 1.45, ly - 8 * sc);
+          ctx.stroke();
+        });
+      }
+
+      const flR = (15 + p * 28) * sc;
+      if (sp.renderType === 'plant_orchid') {
+        ctx.fillStyle = '#6E2B33';
+        [-2.4, -0.7, 0.4, 2.7].forEach(ang => {
+          ctx.beginPath();
+          ctx.ellipse(topX + Math.cos(ang) * flR * 0.85, topY + Math.sin(ang) * flR * 0.75, flR * 0.95, flR * 0.2, ang, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        const pouchGrad = ctx.createRadialGradient(topX - 4 * sc, topY + 2 * sc, 2, topX, topY + 6 * sc, flR * 0.75);
+        pouchGrad.addColorStop(0, '#F7DC79'); pouchGrad.addColorStop(0.7, '#E6BD45'); pouchGrad.addColorStop(1, '#BA9125');
+        ctx.fillStyle = pouchGrad;
+        ctx.beginPath();
+        ctx.ellipse(topX, topY + 7 * sc, flR * 0.56, flR * 0.72, 0, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (sp.renderType === 'plant_edelweiss') {
+        const bracts = 11;
+        for (let b = 0; b < bracts; b++) {
+          const ang = (b / bracts) * Math.PI * 2;
+          const bLen = flR * (0.75 + (b % 2) * 0.35);
+          ctx.fillStyle = b % 2 === 0 ? '#FAF8F2' : '#E3E0D6';
+          ctx.beginPath();
+          ctx.ellipse(topX + Math.cos(ang) * bLen * 0.65, topY + Math.sin(ang) * bLen * 0.65, bLen * 0.68, bLen * 0.24, ang, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        [[-4, -2], [4, -1], [0, 3], [-2, 3], [3, -4]].forEach(([dx, dy]) => {
+          ctx.fillStyle = '#D9B13B';
+          ctx.beginPath();
+          ctx.arc(topX + dx * sc, topY + dy * sc, 3.2 * sc, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      } else if (sp.renderType === 'plant_bellflower') {
+        for (let k = -1; k <= 1; k++) {
+          const bx = topX + k * 14 * sc;
+          const by = topY + Math.abs(k) * 10 * sc + 8 * sc;
+          ctx.fillStyle = '#7C9CC2';
+          ctx.beginPath();
+          ctx.moveTo(bx - 7 * sc, by);
+          ctx.quadraticCurveTo(bx, by - 14 * sc, bx + 7 * sc, by);
+          ctx.quadraticCurveTo(bx, by + 3 * sc, bx - 7 * sc, by);
+          ctx.fill();
+        }
+      } else if (sp.renderType === 'plant_anemone') {
+        for (let k = 0; k < 7; k++) {
+          const ang = (k / 7) * Math.PI * 2;
+          ctx.fillStyle = k % 2 === 0 ? '#FAF8F2' : '#EFECE4';
+          ctx.beginPath();
+          ctx.ellipse(topX + Math.cos(ang) * flR * 0.55, topY + Math.sin(ang) * flR * 0.55, flR * 0.52, flR * 0.24, ang, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.fillStyle = '#D9B13B';
+        ctx.beginPath();
+        ctx.arc(topX, topY, 4.2 * sc, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (sp.renderType === 'plant_foxglove') {
+        for (let tier = 0; tier < 3; tier++) {
+          const fy = topY + tier * 16 * sc;
+          const dir = tier % 2 === 0 ? 1 : -1;
+          ctx.fillStyle = '#C47B97';
+          ctx.beginPath();
+          ctx.ellipse(topX + dir * 9 * sc, fy, 9 * sc, 5.5 * sc, dir * 0.35, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else {
+        for (let tier = 0; tier < 2; tier++) {
+          const fy = topY + tier * 26 * sc;
+          for (let k = 0; k < 6; k++) {
+            const ang = (k / 6) * Math.PI * 2 + tier * 0.4;
+            ctx.fillStyle = k % 2 === 0 ? '#E0B23D' : '#F2CA5C';
+            ctx.beginPath();
+            ctx.ellipse(topX + Math.cos(ang) * flR * 0.65, fy + Math.sin(ang) * flR * 0.55, flR * 0.62, flR * 0.18, ang, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+    }
+
+    function drawRealisticMushroom(ctx, x, y, p, sp, sway, sc) {
+      const stemH = (44 + p * 118) * sc;
+      const stemW = (11 + p * 24) * sc;
+      const capW = (26 + p * 88) * sc;
+      const capH = (19 + p * 54) * sc;
+      const topX = x + sway * 0.22;
+      const topY = y - stemH;
+
+      const stemGrad = ctx.createLinearGradient(x - stemW, y, x + stemW, y);
+      stemGrad.addColorStop(0, sp.barkDark);
+      stemGrad.addColorStop(0.42, sp.barkBase);
+      stemGrad.addColorStop(0.75, sp.barkLight);
+      stemGrad.addColorStop(1, sp.barkDark);
+
+      ctx.fillStyle = stemGrad;
+      ctx.beginPath();
+      ctx.moveTo(x - stemW * 0.72, y + 2);
+      ctx.bezierCurveTo(x - stemW * 0.85, y - stemH * 0.35, topX - stemW * 0.42, topY + stemH * 0.2, topX - stemW * 0.36, topY);
+      ctx.lineTo(topX + stemW * 0.36, topY);
+      ctx.bezierCurveTo(topX + stemW * 0.42, topY + stemH * 0.2, x + stemW * 0.85, y - stemH * 0.35, x + stemW * 0.72, y + 2);
+      ctx.closePath();
+      ctx.fill();
+
+      if ((sp.renderType === 'mushroom_amanita' || sp.renderType === 'mushroom_parasol') && p > 0.35) {
+        ctx.fillStyle = '#FAF8F2';
+        ctx.beginPath();
+        ctx.ellipse(topX, topY + stemH * 0.28, stemW * 0.78, 7 * sc, 0, 0, Math.PI);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = sp.accentColor;
+      ctx.beginPath();
+      ctx.ellipse(topX, topY + 2 * sc, capW * 0.96, capH * 0.26, 0, 0, Math.PI);
+      ctx.fill();
+
+      const capGrad = ctx.createRadialGradient(topX - capW * 0.25, topY - capH * 0.55, capW * 0.08, topX, topY, capW * 1.1);
+      capGrad.addColorStop(0, sp.foliagePalette[2]);
+      capGrad.addColorStop(0.6, sp.foliagePalette[1]);
+      capGrad.addColorStop(1, sp.foliagePalette[0]);
+
+      ctx.fillStyle = capGrad;
+      ctx.beginPath();
+      if (sp.renderType === 'mushroom_chanterelle') {
+        ctx.moveTo(topX - capW, topY - capH * 0.55);
+        ctx.quadraticCurveTo(topX, topY - capH * 0.15, topX + capW, topY - capH * 0.55);
+        ctx.quadraticCurveTo(topX + capW * 0.45, topY + capH * 0.25, topX - capW * 0.45, topY + capH * 0.25);
+        ctx.closePath();
+      } else {
+        ctx.ellipse(topX, topY, capW, capH, 0, Math.PI, Math.PI * 2);
+        ctx.quadraticCurveTo(topX, topY + capH * 0.22, topX - capW, topY);
+      }
+      ctx.fill();
+
+      if (sp.renderType === 'mushroom_amanita' && p > 0.28) {
+        ctx.fillStyle = '#FAF8F2';
+        [[-0.55, -0.35, 0.09], [-0.25, -0.62, 0.11], [0.05, -0.72, 0.12], [0.35, -0.58, 0.10], [0.60, -0.32, 0.08]].forEach(([wx, wy, wr]) => {
+          ctx.beginPath();
+          ctx.ellipse(topX + wx * capW, topY + wy * capH, capW * wr, capW * wr * 0.72, wx * 0.4, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      if (sp.renderType === 'mushroom_morel' && p > 0.25) {
+        ctx.strokeStyle = sp.barkDark;
+        ctx.lineWidth = Math.max(1.2, 1.8 * sc);
+        for (let r = -2; r <= 2; r++) {
+          ctx.beginPath();
+          ctx.moveTo(topX + r * capW * 0.28, topY - capH * 0.85);
+          ctx.lineTo(topX + r * capW * 0.34, topY);
+          ctx.stroke();
+        }
+      }
+    }
+
+    function animationLoop() {
+      globalTime += 0.016;
+      if (session.active) {
+        renderHyperRealisticForest(zenCtx, zenCanvas, session.progress, 'zen');
+      } else if (panoramicOpen) {
+        renderLivingDigitalForest(panoCtx, panoCanvas, true);
+      } else {
+        const activeTab = document.querySelector('.tab-content.active')?.id;
+        if (activeTab === 'tab-foresta') {
+          renderLivingDigitalForest(dioramaCtx, dioramaCanvas, false);
+        } else {
+          renderHyperRealisticForest(previewCtx, previewCanvas, 0.82, 'preview');
+        }
+      }
+      requestAnimationFrame(animationLoop);
+    }
+
+    // --- GESTIONE SESSIONE FULLSCREEN ZEN ---
+    let session = {
+      active: false,
+      durationSec: 25 * 60,
+      remainingSec: 25 * 60,
+      progress: 0,
+      tag: 'Studio Profondo',
+      timerId: null,
+      quoteTimerId: null,
+      quoteIndex: 0
+    };
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function rotatePoeticQuote() {
+      const qEl = document.getElementById('zen-quote-text');
+      const aEl = document.getElementById('zen-quote-author');
+      qEl.classList.remove('quote-visible'); qEl.classList.add('quote-hidden');
+      aEl.classList.remove('quote-visible'); aEl.classList.add('quote-hidden');
+
+      setTimeout(() => {
+        session.quoteIndex = (session.quoteIndex + 1) % POETIC_QUOTES.length;
+        const q = POETIC_QUOTES[session.quoteIndex];
+        qEl.textContent = q.text;
+        aEl.textContent = q.author;
+        qEl.classList.remove('quote-hidden'); qEl.classList.add('quote-visible');
+        aEl.classList.remove('quote-hidden'); aEl.classList.add('quote-visible');
+      }, 1300);
+    }
+
+    function startZenSession() {
+      if (session.active) return;
+      audioEngine.init();
+
+      session.active = true;
+      session.remainingSec = session.durationSec;
+      session.progress = 0;
+      session.tag = document.getElementById('study-tag-select').value;
+      session.quoteIndex = Math.floor(Math.random() * POETIC_QUOTES.length);
+
+      const firstQ = POETIC_QUOTES[session.quoteIndex];
+      document.getElementById('zen-quote-text').textContent = firstQ.text;
+      document.getElementById('zen-quote-author').textContent = firstQ.author;
+      document.getElementById('zen-timer-text').textContent = formatTime(session.remainingSec);
+
+      const roomWhisper = document.getElementById('zen-room-whisper');
+      if (sharedRoom.active) {
+        roomWhisper.classList.remove('hidden');
+        document.getElementById('zen-room-label').textContent = `${sharedRoom.title} • ${sharedRoom.companions.length} nella radura`;
+      } else {
+        roomWhisper.classList.add('hidden');
+      }
+
+      document.getElementById('zen-fullscreen-overlay').classList.remove('hidden');
+      resizeCanvases();
+
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+
+      session.quoteTimerId = setInterval(rotatePoeticQuote, 18000);
+      const startMs = Date.now();
+      const totalMs = session.durationSec * 1000;
+
+      session.timerId = setInterval(() => {
+        const elapsed = Date.now() - startMs;
+        const left = Math.max(0, totalMs - elapsed);
+        session.remainingSec = Math.ceil(left / 1000);
+        session.progress = Math.min(1, elapsed / totalMs);
+        document.getElementById('zen-timer-text').textContent = formatTime(session.remainingSec);
+
+        if (left <= 0) finishZenSession(true);
+      }, 250);
+    }
+
+    function getCurrentNaturalistLevel() {
+      let current = NATURALIST_LEVELS[0];
+      NATURALIST_LEVELS.forEach(lvl => {
+        if (appState.xp >= lvl.minXp) current = lvl;
+      });
+      return current;
+    }
+
+    function finishZenSession(completed) {
+      clearInterval(session.timerId);
+      clearInterval(session.quoteTimerId);
+      session.active = false;
+
+      document.getElementById('zen-fullscreen-overlay').classList.add('hidden');
+      document.getElementById('zen-confirm-abandon').classList.add('hidden');
+      document.getElementById('zen-confirm-abandon').classList.remove('flex');
+
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+
+      const mins = Math.max(1, Math.round(session.durationSec / 60));
+      const sp = getSpeciesById(appState.selectedSpeciesId);
+
+      if (completed) {
+        const lvl = getCurrentNaturalistLevel();
+        const callsMult = document.getElementById('toggle-allow-calls').checked ? 1.15 : 1.0;
+        const symbiosisMult = sharedRoom.active ? 1.25 : 1.0;
+
+        const earnedSap = Math.round((mins * 4 + 15) * lvl.bonusMult * callsMult * symbiosisMult);
+        const earnedXp = Math.round((mins * 4 + 20) * symbiosisMult);
+
+        appState.sapPoints += earnedSap;
+        appState.xp += earnedXp;
+
+        const today = new Date().toDateString();
+        if (appState.lastStudyDate !== today) {
+          appState.streakDays = (appState.lastStudyDate ? appState.streakDays + 1 : 1);
+          appState.lastStudyDate = today;
+        }
+
+        appState.forestHistory.unshift({
+          id: Date.now(),
+          speciesId: sp.id,
+          mins,
+          tag: session.tag,
+          date: new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
+          status: 'alive'
+        });
+
+        evaluateQuests();
+        saveAppState();
+        audioEngine.playCompletionBell();
+        refreshAllUI();
+        showToast(`Piantato ${sp.name} nella tua Foresta! +${earnedSap} Linfa e +${earnedXp} XP.`, 'success');
+      } else {
+        appState.forestHistory.unshift({
+          id: Date.now(),
+          speciesId: sp.id,
+          mins,
+          tag: session.tag,
+          date: new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
+          status: 'withered'
+        });
+        saveAppState();
+        refreshAllUI();
+        showToast('Sessione interrotta: la specie è appassita ed è stata salvata nella foresta.', 'error');
+      }
+    }
+
+    function evaluateQuests() {
+      BOTANIST_QUESTS.forEach(q => {
+        if (!appState.claimedQuests.includes(q.id) && q.check(appState)) {
+          appState.claimedQuests.push(q.id);
+          appState.sapPoints += q.rewardSap;
+          appState.xp += q.rewardXp;
+          showToast(`Sfida completata: "${q.title}" (+${q.rewardSap} Linfa, +${q.rewardXp} XP)!`, 'success');
+        }
+      });
+    }
+
+    let leaveTimer = null;
+    document.addEventListener('visibilitychange', () => {
+      if (!session.active || !document.getElementById('toggle-tab-shield').checked) return;
+      if (document.hidden) {
+        leaveTimer = setTimeout(() => { if (document.hidden && session.active) finishZenSession(false); }, 10000);
+      } else if (leaveTimer) {
+        clearTimeout(leaveTimer);
+        leaveTimer = null;
+      }
+    });
+
+    // --- SCHEDA SCIENTIFICA BOTANICA, MICOLOGICA & ORNITOLOGICA ---
+    function openSpeciesEncyclopedia(speciesId, sessionEntry = null) {
+      const sp = getSpeciesById(speciesId);
+      const isUnlocked = appState.unlockedSpecies.includes(sp.id);
+      const canAfford = appState.sapPoints >= sp.unlockCost;
+
+      const originBox = document.getElementById('enc-session-origin-box');
+      if (sessionEntry) {
+        originBox.classList.remove('hidden');
+        document.getElementById('enc-session-origin-text').textContent =
+          `Piantato durante "${sessionEntry.tag}" (${sessionEntry.mins} min) • ${sessionEntry.date}`;
+        document.getElementById('enc-session-status-badge').textContent =
+          sessionEntry.status === 'withered' ? 'Esemplare Appassito' : 'Coltivato & Vivo';
+      } else {
+        originBox.classList.add('hidden');
+      }
+
+      document.getElementById('enc-category-badge').textContent = sp.categoryLabel;
+      document.getElementById('enc-name').textContent = sp.name;
+      document.getElementById('enc-latin').textContent = sp.latin;
+      document.getElementById('enc-family').textContent = sp.family;
+      document.getElementById('enc-meta2-label').textContent = 'Altitudine';
+      document.getElementById('enc-altitude').textContent = sp.altitude;
+      document.getElementById('enc-meta3-label').textContent = 'Fenologia';
+      document.getElementById('enc-phenology').textContent = sp.phenology;
+      document.getElementById('enc-plate-label').textContent = 'Tavola Botanica';
+
+      document.getElementById('enc-sec1-title').textContent = 'Morfologia & Caratteri Diagnostici';
+      document.getElementById('enc-morphology').textContent = sp.morphology;
+      document.getElementById('enc-sec2-title').textContent = 'Ecologia, Suolo & Simbiosi';
+      document.getElementById('enc-ecology').textContent = sp.ecology;
+      document.getElementById('enc-sec3-title').textContent = 'Note Etnobotaniche & Curiosità';
+      document.getElementById('enc-ethnobotany').textContent = sp.ethnobotany;
+      document.getElementById('enc-status-pill').textContent = isUnlocked ? 'Sbloccata ✓' : `${sp.unlockCost} Linfa`;
+
+      document.getElementById('enc-bird-sing-btn').classList.add('hidden');
+      setupModalPhoto(sp.photoUrl);
+
+      const modal = document.getElementById('encyclopedia-modal');
+      modal.classList.remove('hidden'); modal.classList.add('flex');
+
+      requestAnimationFrame(() => {
+        const spCanvas = document.getElementById('enc-specimen-canvas');
+        const dpr = window.devicePixelRatio || 1;
+        const rect = spCanvas.parentElement.getBoundingClientRect();
+        spCanvas.width = rect.width * dpr;
+        spCanvas.height = rect.height * dpr;
+        const sCtx = spCanvas.getContext('2d');
+        sCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        renderHyperRealisticForest(sCtx, spCanvas, 0.96, 'preview', sp.id);
+      });
+
+      const actionBtn = document.getElementById('enc-action-btn');
+      if (isUnlocked) {
+        actionBtn.disabled = false;
+        actionBtn.className = 'w-full sm:w-auto px-6 py-3 rounded-2xl bg-sage-700 hover:bg-sage-800 text-paper-card font-semibold text-sm transition';
+        actionBtn.textContent = 'Coltiva nella Prossima Sessione';
+        actionBtn.onclick = () => {
+          appState.selectedSpeciesId = sp.id;
+          saveAppState(); refreshAllUI(); closeEncyclopedia();
+          if (panoramicOpen) {
+            panoramicOpen = false;
+            document.getElementById('panoramic-forest-overlay').classList.add('hidden');
+          }
+          switchTab('studio');
+        };
+      } else {
+        actionBtn.disabled = !canAfford;
+        actionBtn.className = canAfford
+          ? 'w-full sm:w-auto px-6 py-3 rounded-2xl bg-sage-700 hover:bg-sage-800 text-paper-card font-semibold text-sm transition'
+          : 'w-full sm:w-auto px-6 py-3 rounded-2xl bg-paper-warm text-sage-600/50 border border-paper-border font-semibold text-sm cursor-not-allowed';
+        actionBtn.textContent = canAfford ? `Sblocca Specie (${sp.unlockCost} Linfa)` : `Servono ${sp.unlockCost} Semi di Linfa`;
+        actionBtn.onclick = () => {
+          if (appState.sapPoints >= sp.unlockCost) {
+            appState.sapPoints -= sp.unlockCost;
+            appState.unlockedSpecies.push(sp.id);
+            appState.selectedSpeciesId = sp.id;
+            saveAppState(); refreshAllUI(); openSpeciesEncyclopedia(sp.id);
+            showToast(`Hai sbloccato ${sp.name}!`, 'success');
+          }
+        };
+      }
+      lucide.createIcons();
+    }
+
+    function openBirdEncyclopedia(birdId) {
+      const bird = getBirdById(birdId);
+      const isUnlocked = appState.unlockedBirds.includes(bird.id);
+      const canAfford = appState.sapPoints >= bird.unlockCost;
+
+      document.getElementById('enc-session-origin-box').classList.add('hidden');
+      document.getElementById('enc-category-badge').textContent = 'Avifauna • Uccello';
+      document.getElementById('enc-name').textContent = bird.name;
+      document.getElementById('enc-latin').textContent = bird.latin;
+      document.getElementById('enc-family').textContent = bird.family;
+      document.getElementById('enc-meta2-label').textContent = 'Habitat';
+      document.getElementById('enc-altitude').textContent = bird.habitat;
+      document.getElementById('enc-meta3-label').textContent = 'Dimensioni';
+      document.getElementById('enc-phenology').textContent = bird.wingspan;
+      document.getElementById('enc-plate-label').textContent = 'Tavola Ornitologica';
+
+      document.getElementById('enc-sec1-title').textContent = 'Piumaggio & Caratteri Diagnostici';
+      document.getElementById('enc-morphology').textContent = bird.morphology;
+      document.getElementById('enc-sec2-title').textContent = 'Vocalizzazione, Canto & Habitat';
+      document.getElementById('enc-ecology').textContent = bird.ecology;
+      document.getElementById('enc-sec3-title').textContent = 'Note Etologiche & Curiosità';
+      document.getElementById('enc-ethnobotany').textContent = bird.ethnobotany;
+      document.getElementById('enc-status-pill').textContent = isUnlocked ? 'Nella Foresta ✓' : `${bird.unlockCost} Linfa`;
+
+      const singBtn = document.getElementById('enc-bird-sing-btn');
+      singBtn.classList.remove('hidden');
+      singBtn.onclick = () => audioEngine.playBirdVocalization(bird.id);
+
+      setupModalPhoto(bird.photoUrl);
+
+      const modal = document.getElementById('encyclopedia-modal');
+      modal.classList.remove('hidden'); modal.classList.add('flex');
+
+      requestAnimationFrame(() => {
+        const spCanvas = document.getElementById('enc-specimen-canvas');
+        const dpr = window.devicePixelRatio || 1;
+        const rect = spCanvas.parentElement.getBoundingClientRect();
+        spCanvas.width = rect.width * dpr;
+        spCanvas.height = rect.height * dpr;
+        const sCtx = spCanvas.getContext('2d');
+        sCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        drawBirdPortraitPlate(sCtx, spCanvas, bird);
+      });
+
+      const actionBtn = document.getElementById('enc-action-btn');
+      if (isUnlocked) {
+        actionBtn.disabled = false;
+        actionBtn.className = 'w-full sm:w-auto px-6 py-3 rounded-2xl bg-sage-700 hover:bg-sage-800 text-paper-card font-semibold text-sm transition';
+        actionBtn.textContent = 'Osservalo nella Tua Foresta →';
+        actionBtn.onclick = () => { closeEncyclopedia(); switchTab('foresta'); };
+      } else {
+        actionBtn.disabled = !canAfford;
+        actionBtn.className = canAfford
+          ? 'w-full sm:w-auto px-6 py-3 rounded-2xl bg-sage-700 hover:bg-sage-800 text-paper-card font-semibold text-sm transition'
+          : 'w-full sm:w-auto px-6 py-3 rounded-2xl bg-paper-warm text-sage-600/50 border border-paper-border font-semibold text-sm cursor-not-allowed';
+        actionBtn.textContent = canAfford ? `Attira nella Foresta (${bird.unlockCost} Linfa)` : `Servono ${bird.unlockCost} Semi di Linfa`;
+        actionBtn.onclick = () => {
+          if (appState.sapPoints >= bird.unlockCost) {
+            appState.sapPoints -= bird.unlockCost;
+            appState.unlockedBirds.push(bird.id);
+            evaluateQuests();
+            saveAppState(); refreshAllUI();
+            audioEngine.playBirdVocalization(bird.id);
+            openBirdEncyclopedia(bird.id);
+            showToast(`${bird.name} ora vive e canta nella tua Foresta!`, 'success');
+          }
+        };
+      }
+      lucide.createIcons();
+    }
+
+    function setupModalPhoto(url) {
+      const imgEl = document.getElementById('enc-photo');
+      const fbEl = document.getElementById('enc-photo-fallback');
+      imgEl.classList.remove('hidden');
+      fbEl.classList.add('hidden'); fbEl.classList.remove('flex');
+      imgEl.onerror = () => {
+        imgEl.classList.add('hidden');
+        fbEl.classList.remove('hidden'); fbEl.classList.add('flex');
+      };
+      imgEl.src = url;
+    }
+
+    function closeEncyclopedia() {
+      const modal = document.getElementById('encyclopedia-modal');
+      modal.classList.add('hidden'); modal.classList.remove('flex');
+    }
+
+    // --- RENDERING UI ---
+    function renderQuickSpeciesStrip() {
+      const strip = document.getElementById('quick-species-strip');
+      const activeSp = getSpeciesById(appState.selectedSpeciesId);
+      document.getElementById('studio-species-name').textContent = activeSp.name;
+      document.getElementById('studio-species-latin').textContent = `${activeSp.latin} • ${activeSp.categoryLabel}`;
+
+      strip.innerHTML = SPECIES_CATALOG.filter(s => appState.unlockedSpecies.includes(s.id)).map(sp => {
+        const selected = sp.id === appState.selectedSpeciesId;
+        const icon = sp.category === 'albero' ? '🌳' : (sp.category === 'fungo' ? '🍄' : '🌿');
+        return `
+          <button data-pick-sp="${sp.id}" class="shrink-0 px-3.5 py-2 rounded-2xl text-xs font-semibold border transition flex items-center gap-1.5 ${
+            selected
+              ? 'bg-sage-700 border-sage-700 text-paper-card shadow-sm'
+              : 'bg-paper-warm border-paper-border text-sage-800 hover:border-wood'
+          }">
+            <span>${icon}</span>
+            <span>${sp.name}</span>
+          </button>
+        `;
+      }).join('');
+
+      strip.querySelectorAll('[data-pick-sp]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          appState.selectedSpeciesId = btn.dataset.pickSp;
+          if (sharedRoom.active) {
+            const me = sharedRoom.companions.find(c => c.isSelf);
+            if (me) me.speciesId = appState.selectedSpeciesId;
+          }
+          saveAppState(); renderQuickSpeciesStrip(); renderRoomUI();
+        });
+      });
+    }
+
+    function renderStudioSoundMixer() {
+      const container = document.getElementById('studio-sound-mixer');
+      const unlockedList = SOUNDS_CATALOG.filter(s => appState.unlockedSounds.includes(s.id));
+
+      container.innerHTML = unlockedList.map(snd => {
+        const val = Math.round((audioEngine.volumes[snd.id] || 0) * 100);
+        const subBadge = snd.id === 'birds' ? ` (${appState.unlockedBirds.length} specie)` : '';
+        return `
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-paper-warm border border-paper-border flex items-center justify-center text-sage-700 shrink-0">
+              <i data-lucide="${snd.icon}" class="w-4 h-4"></i>
+            </div>
+            <div class="flex-1">
+              <div class="flex justify-between text-xs mb-1">
+                <span class="font-medium text-sage-900">${snd.name}${subBadge}</span>
+                <span id="snd-val-${snd.id}" class="text-sage-600 tabular-nums">${val}%</span>
+              </div>
+              <input type="range" min="0" max="100" value="${val}" data-snd-id="${snd.id}" class="botanical-slider w-full">
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.querySelectorAll('input[type="range"]').forEach(sl => {
+        sl.addEventListener('input', e => {
+          const id = e.target.dataset.sndId;
+          const v = parseInt(e.target.value, 10);
+          document.getElementById(`snd-val-${id}`).textContent = `${v}%`;
+          audioEngine.setVolume(id, v / 100);
+        });
+      });
+    }
+
+    function renderCatalogGrid(filterCat = 'all') {
+      const grid = document.getElementById('catalog-grid');
+      let cardsHTML = '';
+
+      const filteredSpecies = SPECIES_CATALOG.filter(sp => filterCat === 'all' || sp.category === filterCat);
+      cardsHTML += filteredSpecies.map(sp => {
+        const unlocked = appState.unlockedSpecies.includes(sp.id);
+        const canAfford = appState.sapPoints >= sp.unlockCost;
+        const catEmoji = sp.category === 'albero' ? '🌳 Albero' : (sp.category === 'fungo' ? '🍄 Fungo' : '🌿 Pianta');
+
+        return `
+          <div class="editorial-card rounded-3xl overflow-hidden flex flex-col justify-between group bg-paper-card">
+            <div>
+              <div class="relative h-44 w-full bg-sage-100 overflow-hidden cursor-pointer" data-open-enc="${sp.id}">
+                <img src="${sp.photoUrl}" alt="${sp.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                <div class="hidden w-full h-full items-center justify-center bg-sage-100 text-4xl">
+                  ${sp.category === 'albero' ? '🌳' : (sp.category === 'fungo' ? '🍄' : '🌿')}
+                </div>
+                <span class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-paper-card/90 backdrop-blur-md text-sage-900 border border-paper-border">
+                  ${catEmoji}
+                </span>
+                <span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[11px] font-bold ${unlocked ? 'bg-sage-700 text-paper-card' : 'bg-paper-card text-sage-900 border border-paper-border'}">
+                  ${unlocked ? 'Sbloccata' : `${sp.unlockCost} Linfa`}
+                </span>
+              </div>
+
+              <div class="p-5 pb-3 cursor-pointer" data-open-enc="${sp.id}">
+                <h3 class="font-serif text-2xl font-semibold text-sage-900 group-hover:text-sage-700 transition">${sp.name}</h3>
+                <p class="font-serif italic text-xs text-wood-dark mb-2">${sp.latin} • ${sp.family}</p>
+                <p class="text-xs text-sage-600 line-clamp-2 leading-relaxed">${sp.morphology}</p>
+              </div>
+            </div>
+
+            <div class="px-5 pb-5 pt-2 flex items-center gap-2">
+              <button data-open-enc="${sp.id}" class="flex-1 py-2.5 rounded-xl bg-paper-warm hover:bg-sage-100 text-xs font-semibold text-sage-900 border border-paper-border transition">
+                Scheda & Foto
+              </button>
+              ${unlocked
+                ? `<button data-use-sp="${sp.id}" class="px-4 py-2.5 rounded-xl bg-sage-700 hover:bg-sage-800 text-paper-card text-xs font-semibold transition">Coltiva</button>`
+                : `<button data-buy-sp="${sp.id}" ${canAfford ? '' : 'disabled'} class="px-4 py-2.5 rounded-xl text-xs font-semibold transition ${canAfford ? 'bg-wood-dark hover:bg-sage-800 text-paper-card' : 'bg-paper-warm text-sage-600/40 border border-paper-border cursor-not-allowed'}">Sblocca</button>`
+              }
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      if (filterCat === 'all' || filterCat === 'uccello') {
+        cardsHTML += BIRDS_CATALOG.map(bird => {
+          const unlocked = appState.unlockedBirds.includes(bird.id);
+          const canAfford = appState.sapPoints >= bird.unlockCost;
+          return `
+            <div class="editorial-card rounded-3xl overflow-hidden flex flex-col justify-between group bg-paper-card">
+              <div>
+                <div class="relative h-44 w-full bg-sage-100 overflow-hidden cursor-pointer" data-open-bird="${bird.id}">
+                  <img src="${bird.photoUrl}" alt="${bird.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                       onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                  <div class="hidden w-full h-full items-center justify-center bg-sage-100 text-4xl">🐦</div>
+                  <span class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-paper-card/90 backdrop-blur-md text-sage-900 border border-paper-border">
+                    🐦 Uccello
+                  </span>
+                  <span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[11px] font-bold ${unlocked ? 'bg-sage-700 text-paper-card' : 'bg-paper-card text-sage-900 border border-paper-border'}">
+                    ${unlocked ? 'Nella Foresta' : `${bird.unlockCost} Linfa`}
+                  </span>
+                </div>
+
+                <div class="p-5 pb-3 cursor-pointer" data-open-bird="${bird.id}">
+                  <h3 class="font-serif text-2xl font-semibold text-sage-900 group-hover:text-sage-700 transition">${bird.name}</h3>
+                  <p class="font-serif italic text-xs text-wood-dark mb-2">${bird.latin} • ${bird.family}</p>
+                  <p class="text-xs text-sage-600 line-clamp-2 leading-relaxed">${bird.ecology}</p>
+                </div>
+              </div>
+
+              <div class="px-5 pb-5 pt-2 flex items-center gap-2">
+                <button data-sing-bird="${bird.id}" class="p-2.5 rounded-xl bg-paper-warm hover:bg-sage-100 border border-paper-border text-sage-700 transition" title="Ascolta il Canto">
+                  <i data-lucide="volume-2" class="w-4 h-4"></i>
+                </button>
+                <button data-open-bird="${bird.id}" class="flex-1 py-2.5 rounded-xl bg-paper-warm hover:bg-sage-100 text-xs font-semibold text-sage-900 border border-paper-border transition">
+                  Scheda & Foto
+                </button>
+                ${unlocked
+                  ? `<span class="px-3 py-2 rounded-xl bg-sage-100 text-sage-800 text-xs font-semibold">Attivo ✓</span>`
+                  : `<button data-buy-bird="${bird.id}" ${canAfford ? '' : 'disabled'} class="px-4 py-2.5 rounded-xl text-xs font-semibold transition ${canAfford ? 'bg-wood-dark hover:bg-sage-800 text-paper-card' : 'bg-paper-warm text-sage-600/40 border border-paper-border cursor-not-allowed'}">Attira</button>`
+                }
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      if (filterCat === 'all' || filterCat === 'suono') {
+        cardsHTML += SOUNDS_CATALOG.map(snd => {
+          const unlocked = appState.unlockedSounds.includes(snd.id);
+          const canAfford = appState.sapPoints >= snd.unlockCost;
+          return `
+            <div class="editorial-card rounded-3xl p-5 flex flex-col justify-between bg-paper-card">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <div class="w-12 h-12 rounded-2xl bg-sage-100 border border-sage-200 flex items-center justify-center text-sage-700">
+                    <i data-lucide="${snd.icon}" class="w-6 h-6"></i>
+                  </div>
+                  <span class="px-3 py-1 rounded-full text-[11px] font-bold ${unlocked ? 'bg-sage-700 text-paper-card' : 'bg-paper-warm text-sage-800 border border-paper-border'}">
+                    ${unlocked ? '🎵 Suono Attivo' : `${snd.unlockCost} Semi di Linfa`}
+                  </span>
+                </div>
+                <h3 class="font-serif text-2xl font-semibold text-sage-900">${snd.name}</h3>
+                <p class="text-xs text-sage-600 mt-1.5 leading-relaxed">${snd.desc}</p>
+              </div>
+
+              <div class="pt-4 mt-4 border-t border-paper-border flex items-center justify-between">
+                <button data-preview-snd="${snd.id}" class="text-xs font-semibold text-sage-700 hover:underline flex items-center gap-1.5 transition">
+                  <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                  <span>Ascolta Anteprima</span>
+                </button>
+                ${unlocked
+                  ? `<span class="text-xs font-semibold text-sage-600">Nel Mixer ✓</span>`
+                  : `<button data-buy-snd="${snd.id}" ${canAfford ? '' : 'disabled'} class="px-4 py-2 rounded-xl text-xs font-semibold transition ${canAfford ? 'bg-wood-dark hover:bg-sage-800 text-paper-card' : 'bg-paper-warm text-sage-600/40 border border-paper-border cursor-not-allowed'}">Sblocca Suono</button>`
+                }
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      grid.innerHTML = cardsHTML;
+
+      grid.querySelectorAll('[data-open-enc]').forEach(el => el.addEventListener('click', () => openSpeciesEncyclopedia(el.dataset.openEnc)));
+      grid.querySelectorAll('[data-open-bird]').forEach(el => el.addEventListener('click', () => openBirdEncyclopedia(el.dataset.openBird)));
+      grid.querySelectorAll('[data-sing-bird]').forEach(btn => btn.addEventListener('click', e => {
+        e.stopPropagation();
+        audioEngine.playBirdVocalization(btn.dataset.singBird);
+      }));
+      grid.querySelectorAll('[data-use-sp]').forEach(btn => btn.addEventListener('click', () => {
+        appState.selectedSpeciesId = btn.dataset.useSp;
+        saveAppState(); refreshAllUI(); switchTab('studio');
+      }));
+      grid.querySelectorAll('[data-buy-sp]').forEach(btn => btn.addEventListener('click', () => {
+        const sp = getSpeciesById(btn.dataset.buySp);
+        if (appState.sapPoints >= sp.unlockCost && !appState.unlockedSpecies.includes(sp.id)) {
+          appState.sapPoints -= sp.unlockCost;
+          appState.unlockedSpecies.push(sp.id);
+          appState.selectedSpeciesId = sp.id;
+          saveAppState(); refreshAllUI();
+          showToast(`Nuova specie sbloccata: ${sp.name}!`, 'success');
+        }
+      }));
+      grid.querySelectorAll('[data-buy-bird]').forEach(btn => btn.addEventListener('click', () => {
+        const bird = getBirdById(btn.dataset.buyBird);
+        if (appState.sapPoints >= bird.unlockCost && !appState.unlockedBirds.includes(bird.id)) {
+          appState.sapPoints -= bird.unlockCost;
+          appState.unlockedBirds.push(bird.id);
+          evaluateQuests();
+          saveAppState(); refreshAllUI();
+          audioEngine.playBirdVocalization(bird.id);
+          showToast(`${bird.name} ora vola e canta nella tua Foresta!`, 'success');
+        }
+      }));
+      grid.querySelectorAll('[data-buy-snd]').forEach(btn => btn.addEventListener('click', () => {
+        const snd = SOUNDS_CATALOG.find(s => s.id === btn.dataset.buySnd);
+        if (snd && appState.sapPoints >= snd.unlockCost && !appState.unlockedSounds.includes(snd.id)) {
+          appState.sapPoints -= snd.unlockCost;
+          appState.unlockedSounds.push(snd.id);
+          audioEngine.setVolume(snd.id, 0.5);
+          saveAppState(); refreshAllUI();
+          showToast(`Suono sbloccato: ${snd.name}!`, 'success');
+        }
+      }));
+      grid.querySelectorAll('[data-preview-snd]').forEach(btn => btn.addEventListener('click', () => {
+        const id = btn.dataset.previewSnd;
+        audioEngine.init();
+        const prev = audioEngine.volumes[id] || 0;
+        audioEngine.setVolume(id, 0.65);
+        showToast('Anteprima sonora per 3 secondi...', 'info');
+        setTimeout(() => audioEngine.setVolume(id, prev), 3000);
+      }));
+    }
+
+    function renderForestSection() {
+      const alive = appState.forestHistory.filter(i => i.status === 'alive');
+      const withered = appState.forestHistory.filter(i => i.status === 'withered');
+      const totalMins = alive.reduce((acc, i) => acc + i.mins, 0);
+
+      document.getElementById('stat-alive-count').textContent = alive.length;
+      document.getElementById('stat-birds-count').textContent = `${appState.unlockedBirds.length} / ${BIRDS_CATALOG.length}`;
+      document.getElementById('stat-withered-count').textContent = withered.length;
+      document.getElementById('stat-focus-time').textContent = totalMins >= 60 ? `${(totalMins / 60).toFixed(1)}h` : `${totalMins}m`;
+
+      const birdNames = appState.unlockedBirds.map(id => getBirdById(id).name).join(', ');
+      document.getElementById('diorama-birds-badge').textContent = `🐦 Avifauna: ${birdNames}`;
+
+      const grid = document.getElementById('forest-history-grid');
+      if (appState.forestHistory.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-10 text-center editorial-card rounded-2xl">
+            <p class="font-serif text-xl text-sage-900">La tua Foresta ospita già 3 esemplari fondatori</p>
+            <p class="text-xs text-sage-600 mt-1">Puoi già esplorare il bosco qui sopra o completare una sessione di studio per piantare nuove specie.</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = appState.forestHistory.map(item => {
+        const sp = getSpeciesById(item.speciesId);
+        const ok = item.status === 'alive';
+        const emoji = !ok ? '🥀' : (sp.category === 'albero' ? '🌳' : (sp.category === 'fungo' ? '🍄' : '🌿'));
+        return `
+          <div data-inspect-entry="${item.id}" class="editorial-card rounded-2xl p-4 text-center cursor-pointer ${ok ? '' : 'opacity-70'}">
+            <div class="text-3xl mb-2">${emoji}</div>
+            <div class="font-serif text-lg font-semibold text-sage-900 leading-tight">${ok ? sp.name : `${sp.name} (Appassita)`}</div>
+            <div class="text-[11px] text-sage-700 font-medium mt-0.5">${item.tag}</div>
+            <div class="text-[10px] text-sage-600 mt-2 pt-2 border-t border-paper-border flex justify-between">
+              <span>${item.mins}m</span>
+              <span>${item.date}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      grid.querySelectorAll('[data-inspect-entry]').forEach(card => {
+        card.addEventListener('click', () => {
+          const entry = appState.forestHistory.find(e => String(e.id) === card.dataset.inspectEntry);
+          if (entry) openSpeciesEncyclopedia(entry.speciesId, entry);
+        });
+      });
+    }
+
+    function renderRoomUI() {
+      const studioBanner = document.getElementById('studio-shared-banner');
+      const navDot = document.getElementById('nav-room-dot');
+      const inviteBox = document.getElementById('room-invite-box');
+      const leaveBtn = document.getElementById('btn-leave-room');
+      const heading = document.getElementById('active-room-heading');
+      const list = document.getElementById('room-companions-list');
+
+      document.getElementById('room-user-name').value = appState.userName;
+
+      if (!sharedRoom.active) {
+        studioBanner.classList.add('hidden');
+        navDot.classList.add('hidden');
+        inviteBox.classList.add('hidden');
+        leaveBtn.classList.add('hidden');
+        heading.textContent = 'Nessuna Stanza Attiva';
+        list.innerHTML = `
+          <div class="editorial-card p-6 rounded-2xl text-center">
+            <p class="font-serif text-xl text-sage-900">Crea una radura o apri un link d'invito</p>
+            <p class="text-xs text-sage-600 mt-1">Quando studi in compagnia, le piante dei tuoi amici appaiono accanto alla tua nello Schermo Intero Zen.</p>
+          </div>
+        `;
+        return;
+      }
+
+      studioBanner.classList.remove('hidden');
+      navDot.classList.remove('hidden');
+      inviteBox.classList.remove('hidden');
+      leaveBtn.classList.remove('hidden');
+
+      heading.textContent = sharedRoom.title;
+      document.getElementById('studio-room-summary').textContent = `Stanza: "${sharedRoom.title}" • ${sharedRoom.companions.length} Partecipanti nella radura`;
+      document.getElementById('room-code-badge').textContent = sharedRoom.code;
+      document.getElementById('room-invite-url').value = buildRoomInviteUrl(sharedRoom.code, sharedRoom.title, appState.userName);
+
+      list.innerHTML = sharedRoom.companions.map(comp => {
+        const sp = getSpeciesById(comp.speciesId);
+        const icon = sp.category === 'albero' ? '🌳' : (sp.category === 'fungo' ? '🍄' : '🌿');
+        return `
+          <div class="editorial-card p-4 rounded-2xl flex items-center justify-between ${comp.isSelf ? 'border-sage-700 bg-sage-100/50' : ''}">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-paper-card border border-paper-border flex items-center justify-center text-xl">${icon}</div>
+              <div>
+                <div class="text-sm font-bold text-sage-900">${comp.name}</div>
+                <div class="text-xs text-sage-600">Coltiva: <span class="text-sage-800 font-medium">${sp.name}</span></div>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-sage-100 text-sage-800">Pronto</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderPercorsoAndQuests() {
+      const lvl = getCurrentNaturalistLevel();
+      const nextLvl = NATURALIST_LEVELS.find(l => l.minXp > appState.xp);
+
+      document.getElementById('header-sap-points').textContent = appState.sapPoints;
+      document.getElementById('header-xp-points').textContent = `${appState.xp} XP`;
+      document.getElementById('header-streak').textContent = `${appState.streakDays}g`;
+      document.getElementById('path-total-xp').textContent = `${appState.xp} XP`;
+
+      document.getElementById('studio-rank-title').textContent = `Liv. ${lvl.level} • ${lvl.title}`;
+      document.getElementById('studio-xp-current').textContent = `${appState.xp} XP`;
+      if (nextLvl) {
+        const pct = Math.min(100, Math.round(((appState.xp - lvl.minXp) / (nextLvl.minXp - lvl.minXp)) * 100));
+        document.getElementById('studio-xp-bar').style.width = `${pct}%`;
+        document.getElementById('studio-xp-next').textContent = `Prossimo: ${nextLvl.title} (${nextLvl.minXp} XP)`;
+      } else {
+        document.getElementById('studio-xp-bar').style.width = '100%';
+        document.getElementById('studio-xp-next').textContent = 'Rango Massimo Raggiunto!';
+      }
+
+      document.getElementById('path-milestones-list').innerHTML = NATURALIST_LEVELS.map(item => {
+        const reached = appState.xp >= item.minXp;
+        const isCurrent = item.level === lvl.level;
+        return `
+          <div class="editorial-card p-4 rounded-2xl flex items-center justify-between gap-3 ${isCurrent ? 'border-sage-700 bg-sage-100/60' : (reached ? '' : 'opacity-65')}">
+            <div class="flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-2xl flex items-center justify-center font-serif font-semibold text-lg ${reached ? 'bg-sage-700 text-paper-card' : 'bg-paper-card text-sage-600/60 border border-paper-border'}">
+                ${item.level}
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-serif text-xl font-semibold text-sage-900">${item.title}</span>
+                  ${isCurrent ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-sage-700 text-paper-card font-bold">Attuale</span>' : ''}
+                </div>
+                <p class="text-xs text-sage-600 mt-0.5">${item.perk}</p>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <div class="text-xs font-bold ${reached ? 'text-sage-700' : 'text-sage-600'}">${item.minXp} XP</div>
+              <div class="text-[10px] text-sage-600">${reached ? 'Sbloccato ✓' : 'Bloccato'}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('quests-list').innerHTML = BOTANIST_QUESTS.map(q => {
+        const done = appState.claimedQuests.includes(q.id);
+        return `
+          <div class="editorial-card p-3.5 rounded-2xl flex items-center justify-between gap-3 ${done ? 'bg-sage-100/60 border-sage-200' : ''}">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-bold text-sage-900">${q.title}</span>
+                ${done ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-sage-700 text-paper-card font-semibold">Completata ✓</span>' : ''}
+              </div>
+              <p class="text-xs text-sage-600 mt-0.5">${q.desc}</p>
+            </div>
+            <div class="text-right shrink-0">
+              <div class="text-xs font-bold text-sage-700">+${q.rewardSap} Linfa</div>
+              <div class="text-[11px] text-wood-dark font-semibold">+${q.rewardXp} XP</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const spUnlocked = appState.unlockedSpecies.length;
+      const spTotal = SPECIES_CATALOG.length;
+      const bdUnlocked = appState.unlockedBirds.length;
+      const bdTotal = BIRDS_CATALOG.length;
+      const snUnlocked = appState.unlockedSounds.length;
+      const snTotal = SOUNDS_CATALOG.length;
+
+      document.getElementById('biodiversity-summary').innerHTML = `
+        <div class="editorial-card p-3 rounded-2xl">
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-sage-900 font-medium">🌳 Flora & Micota</span>
+            <span class="text-sage-700 font-bold">${spUnlocked} / ${spTotal} Specie</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-paper-card border border-paper-border overflow-hidden">
+            <div class="h-full bg-sage-700" style="width: ${Math.round((spUnlocked / spTotal) * 100)}%"></div>
+          </div>
+        </div>
+        <div class="editorial-card p-3 rounded-2xl">
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-sage-900 font-medium">🐦 Avifauna Canora</span>
+            <span class="text-sage-700 font-bold">${bdUnlocked} / ${bdTotal} Specie</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-paper-card border border-paper-border overflow-hidden">
+            <div class="h-full bg-wood-dark" style="width: ${Math.round((bdUnlocked / bdTotal) * 100)}%"></div>
+          </div>
+        </div>
+        <div class="editorial-card p-3 rounded-2xl">
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-sage-900 font-medium">🎵 Paesaggi Sonori</span>
+            <span class="text-sage-700 font-bold">${snUnlocked} / ${snTotal} Tracce</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-paper-card border border-paper-border overflow-hidden">
+            <div class="h-full bg-sage-500" style="width: ${Math.round((snUnlocked / snTotal) * 100)}%"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function updateEstimatedReward() {
+      const mins = Math.max(1, Math.round(session.durationSec / 60));
+      const lvl = getCurrentNaturalistLevel();
+      const callsMult = document.getElementById('toggle-allow-calls').checked ? 1.15 : 1.0;
+      const symbiosisMult = sharedRoom.active ? 1.25 : 1.0;
+
+      const sap = Math.round((mins * 4 + 15) * lvl.bonusMult * callsMult * symbiosisMult);
+      const xp = Math.round((mins * 4 + 20) * symbiosisMult);
+      document.getElementById('estimated-reward-text').textContent = `+${sap} Semi di Linfa & +${xp} XP`;
+    }
+
+    function refreshAllUI() {
+      renderQuickSpeciesStrip();
+      renderStudioSoundMixer();
+      renderCatalogGrid();
+      renderRoomUI();
+      renderPercorsoAndQuests();
+      renderForestSection();
+      updateEstimatedReward();
+      lucide.createIcons();
+    }
+
+    // --- INTERATTIVITÀ SPAZIALE FORESTA ESPLORABILE ---
+    function findNodeAtCanvasPos(canvasEl, clientX, clientY) {
+      const rect = canvasEl.getBoundingClientRect();
+      const mx = clientX - rect.left;
+      const my = clientY - rect.top;
+      for (let i = renderedForestNodes.length - 1; i >= 0; i--) {
+        const n = renderedForestNodes[i];
+        const dx = mx - n.x;
+        const dy = my - n.y;
+        if (dx * dx + dy * dy <= n.r * n.r) return n;
+      }
+      return null;
+    }
+
+    function attachInteractiveForestControls(canvasEl) {
+      canvasEl.addEventListener('mousedown', e => {
+        forestCam.isDragging = true;
+        forestCam.hasMoved = false;
+        forestCam.dragStartX = e.clientX;
+        forestCam.dragStartPanX = forestCam.panX;
+      });
+
+      window.addEventListener('mousemove', e => {
+        if (forestCam.isDragging) {
+          const dx = e.clientX - forestCam.dragStartX;
+          if (Math.abs(dx) > 4) forestCam.hasMoved = true;
+          forestCam.panX = Math.max(-900, Math.min(900, forestCam.dragStartPanX + dx));
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        forestCam.isDragging = false;
+      });
+
+      canvasEl.addEventListener('touchstart', e => {
+        if (e.touches.length === 1) {
+          forestCam.isDragging = true;
+          forestCam.hasMoved = false;
+          forestCam.dragStartX = e.touches[0].clientX;
+          forestCam.dragStartPanX = forestCam.panX;
+        }
+      }, { passive: true });
+
+      canvasEl.addEventListener('touchmove', e => {
+        if (forestCam.isDragging && e.touches.length === 1) {
+          const dx = e.touches[0].clientX - forestCam.dragStartX;
+          if (Math.abs(dx) > 4) forestCam.hasMoved = true;
+          forestCam.panX = Math.max(-900, Math.min(900, forestCam.dragStartPanX + dx));
+        }
+      }, { passive: true });
+
+      canvasEl.addEventListener('touchend', () => {
+        forestCam.isDragging = false;
+      });
+
+      canvasEl.addEventListener('wheel', e => {
+        e.preventDefault();
+        const delta = e.deltaY < 0 ? 0.1 : -0.1;
+        forestCam.zoom = Math.max(0.7, Math.min(1.85, Number((forestCam.zoom + delta).toFixed(2))));
+        document.getElementById('diorama-reset-view').textContent = `${Math.round(forestCam.zoom * 100)}%`;
+      }, { passive: false });
+
+      canvasEl.addEventListener('mousemove', e => {
+        if (forestCam.isDragging) return;
+        const hit = findNodeAtCanvasPos(canvasEl, e.clientX, e.clientY);
+        hoveredForestNodeId = hit ? hit.nodeId : null;
+        canvasEl.style.cursor = hit ? 'pointer' : 'grab';
+
+        if (canvasEl === dioramaCanvas) {
+          const tt = document.getElementById('diorama-tooltip');
+          if (hit) {
+            tt.classList.remove('hidden');
+            if (hit.kind === 'bird') {
+              document.getElementById('diorama-tt-badge').textContent = 'Uccello';
+              document.getElementById('diorama-tt-name').textContent = hit.bird.name;
+              document.getElementById('diorama-tt-sub').textContent = `Clicca per scheda ornitologica e canto`;
+            } else {
+              document.getElementById('diorama-tt-badge').textContent = hit.species.categoryLabel;
+              document.getElementById('diorama-tt-name').textContent = hit.species.name;
+              document.getElementById('diorama-tt-sub').textContent = `${hit.entry.tag} • ${hit.entry.mins}m — Clicca per scheda`;
+            }
+          } else {
+            tt.classList.add('hidden');
+          }
+        }
+      });
+
+      canvasEl.addEventListener('click', e => {
+        if (forestCam.hasMoved) return;
+        const hit = findNodeAtCanvasPos(canvasEl, e.clientX, e.clientY);
+        if (!hit) return;
+        if (hit.kind === 'bird') {
+          audioEngine.playBirdVocalization(hit.bird.id);
+          openBirdEncyclopedia(hit.bird.id);
+        } else {
+          openSpeciesEncyclopedia(hit.species.id, hit.entry);
+        }
+      });
+    }
+
+    attachInteractiveForestControls(dioramaCanvas);
+    attachInteractiveForestControls(panoCanvas);
+
+    function adjustForestZoom(delta) {
+      forestCam.zoom = Math.max(0.7, Math.min(1.85, Number((forestCam.zoom + delta).toFixed(2))));
+      document.getElementById('diorama-reset-view').textContent = `${Math.round(forestCam.zoom * 100)}%`;
+    }
+    function resetForestCam() {
+      forestCam.panX = 0;
+      forestCam.zoom = 1;
+      document.getElementById('diorama-reset-view').textContent = '100%';
+    }
+
+    document.getElementById('diorama-step-left').addEventListener('click', () => { forestCam.panX = Math.min(900, forestCam.panX + 140); });
+    document.getElementById('diorama-step-right').addEventListener('click', () => { forestCam.panX = Math.max(-900, forestCam.panX - 140); });
+    document.getElementById('diorama-zoom-in').addEventListener('click', () => adjustForestZoom(0.15));
+    document.getElementById('diorama-zoom-out').addEventListener('click', () => adjustForestZoom(-0.15));
+    document.getElementById('diorama-reset-view').addEventListener('click', resetForestCam);
+
+    document.getElementById('pano-step-left').addEventListener('click', () => { forestCam.panX = Math.min(900, forestCam.panX + 180); });
+    document.getElementById('pano-step-right').addEventListener('click', () => { forestCam.panX = Math.max(-900, forestCam.panX - 180); });
+    document.getElementById('pano-zoom-in').addEventListener('click', () => adjustForestZoom(0.15));
+    document.getElementById('pano-zoom-out').addEventListener('click', () => adjustForestZoom(-0.15));
+    document.getElementById('pano-reset-view').addEventListener('click', resetForestCam);
+
+    document.getElementById('btn-open-panoramic').addEventListener('click', () => {
+      panoramicOpen = true;
+      audioEngine.init();
+      document.getElementById('panoramic-forest-overlay').classList.remove('hidden');
+      resizeCanvases();
+    });
+
+    document.getElementById('pano-btn-close').addEventListener('click', () => {
+      panoramicOpen = false;
+      document.getElementById('panoramic-forest-overlay').classList.add('hidden');
+    });
+
+    document.getElementById('pano-btn-audio').addEventListener('click', () => {
+      const muted = audioEngine.toggleMute();
+      showToast(muted ? 'Audio silenziato.' : 'Paesaggio sonoro e canti degli uccelli attivi.', 'info');
+    });
+
+    // --- NAVIGAZIONE, CLIPBOARD & EVENTI ---
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+      document.querySelectorAll('.nav-btn').forEach(b => {
+        const active = b.dataset.tab === tabId;
+        b.className = active
+          ? 'nav-btn active flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition bg-paper-card text-sage-900 shadow-sm border border-paper-border whitespace-nowrap'
+          : 'nav-btn flex-1 lg:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium text-sage-600 hover:text-sage-900 transition whitespace-nowrap';
+      });
+      resizeCanvases();
+      if (tabId === 'foresta') renderForestSection();
+    }
+
+    function copyTextFallback(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      showToast('Link d’invito copiato negli appunti!', 'success');
+    }
+
+    function showToast(msg, type = 'info') {
+      const box = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      const style = type === 'success'
+        ? 'border-sage-700 bg-paper-card text-sage-900'
+        : type === 'error'
+          ? 'border-red-300 bg-red-50 text-red-900'
+          : 'border-wood bg-paper-card text-sage-900';
+      el.className = `pointer-events-auto px-4 py-3 rounded-2xl text-xs sm:text-sm font-medium border ${style} shadow-lg transition-all duration-300`;
+      el.textContent = msg;
+      box.appendChild(el);
+      setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 4200);
+    }
+
+    document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+    document.querySelectorAll('[data-tab-jump]').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tabJump)));
+
+    document.querySelectorAll('.duration-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.duration-btn').forEach(b => {
+          b.classList.remove('active', 'bg-paper-card', 'text-sage-900', 'shadow-sm', 'border', 'border-paper-border');
+          b.classList.add('text-sage-600');
+        });
+        btn.classList.add('active', 'bg-paper-card', 'text-sage-900', 'shadow-sm', 'border', 'border-paper-border');
+        btn.classList.remove('text-sage-600');
+
+        const mins = parseFloat(btn.dataset.mins);
+        session.durationSec = Math.round(mins * 60);
+        session.remainingSec = session.durationSec;
+        document.getElementById('setup-timer-display').textContent = formatTime(session.remainingSec);
+        updateEstimatedReward();
+      });
+    });
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = btn.dataset.preset;
+        const map = p === 'rainy'
+          ? { rain: 0.65, wind: 0.35, birds: 0.15, stream: 0, fire: 0, brown: 0 }
+          : p === 'dawn'
+            ? { rain: 0, wind: 0.25, birds: 0.75, stream: 0.4, fire: 0, brown: 0 }
+            : { rain: 0.3, wind: 0.15, birds: 0.2, stream: 0, fire: 0, brown: 0.55 };
+
+        Object.entries(map).forEach(([k, v]) => {
+          if (appState.unlockedSounds.includes(k)) audioEngine.setVolume(k, v);
+        });
+        renderStudioSoundMixer();
+      });
+    });
+
+    document.getElementById('toggle-allow-calls').addEventListener('change', updateEstimatedReward);
+    document.getElementById('btn-start-zen-session').addEventListener('click', startZenSession);
+    document.getElementById('btn-inspect-active-species').addEventListener('click', () => openSpeciesEncyclopedia(appState.selectedSpeciesId));
+    document.getElementById('close-enc-modal').addEventListener('click', closeEncyclopedia);
+
+    document.getElementById('btn-create-room').addEventListener('click', () => {
+      createOrUpdateSharedRoom(
+        document.getElementById('room-title-input').value,
+        document.getElementById('room-user-name').value
+      );
+      evaluateQuests(); saveAppState(); refreshAllUI();
+    });
+    document.getElementById('btn-leave-room').addEventListener('click', leaveSharedRoom);
+    document.getElementById('btn-copy-room-url').addEventListener('click', () => copyTextFallback(document.getElementById('room-invite-url').value));
+    document.getElementById('btn-quick-copy-invite').addEventListener('click', () => {
+      if (sharedRoom.active) copyTextFallback(buildRoomInviteUrl(sharedRoom.code, sharedRoom.title, appState.userName));
+    });
+
+    document.getElementById('btn-simulate-friend').addEventListener('click', () => {
+      if (!sharedRoom.active) createOrUpdateSharedRoom('Radura di Studio Collettivo', appState.userName);
+      const nextPeer = SIMULATED_PEERS[(sharedRoom.companions.length - 1) % SIMULATED_PEERS.length];
+      sharedRoom.companions.push({ id: 'sim_' + Date.now(), name: nextPeer.name, speciesId: nextPeer.speciesId, isSelf: false });
+      evaluateQuests(); saveAppState(); refreshAllUI();
+      showToast(`${nextPeer.name} è entrato nella radura! La sua pianta crescerà con te.`, 'success');
+    });
+
+    document.getElementById('zen-btn-mute').addEventListener('click', e => {
+      const m = audioEngine.toggleMute();
+      e.currentTarget.innerHTML = m ? '<i data-lucide="volume-x" class="w-4 h-4 text-red-700"></i>' : '<i data-lucide="volume-2" class="w-4 h-4"></i>';
+      lucide.createIcons();
+    });
+    document.getElementById('zen-btn-abandon').addEventListener('click', () => {
+      const box = document.getElementById('zen-confirm-abandon');
+      box.classList.remove('hidden'); box.classList.add('flex');
+    });
+    document.getElementById('zen-cancel-abandon').addEventListener('click', () => {
+      const box = document.getElementById('zen-confirm-abandon');
+      box.classList.add('hidden'); box.classList.remove('flex');
+    });
+    document.getElementById('zen-confirm-giveup').addEventListener('click', () => finishZenSession(false));
+
+    document.querySelectorAll('.enc-cat-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.enc-cat-btn').forEach(b => {
+          b.className = 'enc-cat-btn px-3.5 py-1.5 rounded-xl text-xs font-medium text-sage-600 hover:text-sage-900';
+        });
+        btn.className = 'enc-cat-btn active px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-paper-card text-sage-900 shadow-sm border border-paper-border';
+        renderCatalogGrid(btn.dataset.cat);
+        lucide.createIcons();
+      });
+    });
+
+    document.getElementById('btn-studio-mute').addEventListener('click', e => {
+      const m = audioEngine.toggleMute();
+      e.currentTarget.innerHTML = m ? '<i data-lucide="volume-x" class="w-4 h-4 text-red-700"></i>' : '<i data-lucide="volume-2" class="w-4 h-4"></i>';
+      lucide.createIcons();
+    });
+
+    document.getElementById('btn-open-dnd-guide').addEventListener('click', () => {
+      document.getElementById('dnd-guide-modal').classList.remove('hidden');
+      document.getElementById('dnd-guide-modal').classList.add('flex');
+    });
+    ['close-dnd-modal', 'btn-close-dnd-ok'].forEach(id => {
+      document.getElementById(id).addEventListener('click', () => {
+        document.getElementById('dnd-guide-modal').classList.add('hidden');
+        document.getElementById('dnd-guide-modal').classList.remove('flex');
+      });
+    });
+
+    document.getElementById('btn-test-call-sim').addEventListener('click', () => {
+      const allowed = document.getElementById('toggle-allow-calls').checked;
+      showToast(
+        allowed
+          ? 'Chiamata in arrivo consentita dalla Whitelist Emergenza: la tua pianta resta al sicuro.'
+          : 'Chiamata bloccata in modalità silenziosa assoluta.',
+        allowed ? 'success' : 'info'
+      );
+    });
+
+    window.addEventListener('load', () => {
+      parseRoomFromUrlHash();
+      refreshAllUI();
+      resizeCanvases();
+      animationLoop();
+    });
+  </script>
+</body>
+</html>
