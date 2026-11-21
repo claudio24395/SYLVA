@@ -5,8 +5,171 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sylva — Atelier Botanico, Foresta Esplorabile & Studio Condiviso</title>
 
-  <!-- Icona Originale Sylva (SVG Data-URI) -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='2' y='2' width='60' height='60' rx='18' fill='%23F7F5F0' stroke='%23B8A48E' stroke-width='2.5'/%3E%3Ccircle cx='44' cy='18' r='6.5' fill='%23E3BF4B' fill-opacity='0.38'/%3E%3Cpath d='M32 51V21' stroke='%234E6B53' stroke-width='3.2' stroke-linecap='round'/%3E%3Cpath d='M32 40C22 40 16 34 16 25C25 25 32 31 32 40Z' fill='%2376967B'/%3E%3Cpath d='M32 32C42 32 48 26 48 17C39 17 32 23 32 32Z' fill='%234E6B53'/%3E%3Cpath d='M32 22C27 16 29 11 32 9C35 11 37 16 32 22Z' fill='%238C7862'/%3E%3C/svg%3E" />
+  <!-- Meta Tag iOS Safari Web App (Schermata Home iPhone / iPad) -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Sylva" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" content="#F7F5F0" />
+
+  <!-- Icone Statiche Immediate & Target Sincroni per Safari iOS / PWA -->
+  <link id="appleTouchIcon" rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" />
+  <link id="appleTouchIconPrecomposed" rel="apple-touch-icon-precomposed" sizes="180x180" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" />
+  <link id="faviconPng" rel="icon" type="image/png" sizes="192x192" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='2' y='2' width='60' height='60' rx='18' fill='%23F7F5F0' stroke='%234E6B53' stroke-width='2.5'/%3E%3Ccircle cx='44' cy='18' r='6.5' fill='%23E3BF4B' fill-opacity='0.38'/%3E%3Cpath d='M32 51V21' stroke='%234E6B53' stroke-width='3.2' stroke-linecap='round'/%3E%3Cpath d='M32 40C22 40 16 34 16 25C25 25 32 31 32 40Z' fill='%2376967B'/%3E%3Cpath d='M32 32C42 32 48 26 48 17C39 17 32 23 32 32Z' fill='%234E6B53'/%3E%3Cpath d='M32 22C27 16 29 11 32 9C35 11 37 16 32 22Z' fill='%238C7862'/%3E%3C/svg%3E" />
+  <link id="manifestLink" rel="manifest" href="" />
+
+  <!-- Generazione Sincrona Bloccante delle Icone PNG (180x180 & 512x512) Prima del First Paint -->
+  <script>
+    (function generateSylvaHomeIconsSync() {
+      try {
+        function renderSylvaEmblemPng(size) {
+          var c = document.createElement('canvas');
+          c.width = size;
+          c.height = size;
+          var ctx = c.getContext('2d');
+          var s = size / 512;
+
+          // Sfondo pieno carta avorio (iOS applica automaticamente la maschera squircle)
+          var bg = ctx.createLinearGradient(0, 0, size, size);
+          bg.addColorStop(0, '#FCFBF8');
+          bg.addColorStop(0.55, '#F7F5F0');
+          bg.addColorStop(1, '#EFECE4');
+          ctx.fillStyle = bg;
+          ctx.fillRect(0, 0, size, size);
+
+          // Alone solare caldo in alto a destra
+          var sun = ctx.createRadialGradient(365 * s, 138 * s, 10 * s, 365 * s, 138 * s, 118 * s);
+          sun.addColorStop(0, 'rgba(227, 191, 75, 0.55)');
+          sun.addColorStop(0.6, 'rgba(227, 191, 75, 0.16)');
+          sun.addColorStop(1, 'rgba(227, 191, 75, 0)');
+          ctx.fillStyle = sun;
+          ctx.beginPath();
+          ctx.arc(365 * s, 138 * s, 118 * s, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Cornice botanica interna verde salvia
+          ctx.strokeStyle = '#4E6B53';
+          ctx.lineWidth = 10 * s;
+          var pad = 28 * s;
+          var r = 84 * s;
+          var w = size - pad * 2;
+          var h = size - pad * 2;
+          ctx.beginPath();
+          ctx.moveTo(pad + r, pad);
+          ctx.lineTo(pad + w - r, pad);
+          ctx.quadraticCurveTo(pad + w, pad, pad + w, pad + r);
+          ctx.lineTo(pad + w, pad + h - r);
+          ctx.quadraticCurveTo(pad + w, pad + h, pad + w - r, pad + h);
+          ctx.lineTo(pad + r, pad + h);
+          ctx.quadraticCurveTo(pad, pad + h, pad, pad + h - r);
+          ctx.lineTo(pad, pad + r);
+          ctx.quadraticCurveTo(pad, pad, pad + r, pad);
+          ctx.closePath();
+          ctx.stroke();
+
+          // Collina morbida di muschio alla base
+          ctx.fillStyle = '#DCE5DD';
+          ctx.beginPath();
+          ctx.moveTo(64 * s, 412 * s);
+          ctx.quadraticCurveTo(256 * s, 364 * s, 448 * s, 412 * s);
+          ctx.quadraticCurveTo(256 * s, 444 * s, 64 * s, 412 * s);
+          ctx.closePath();
+          ctx.fill();
+
+          // Tronco centrale e radici dell'albero
+          ctx.strokeStyle = '#6E5A47';
+          ctx.lineWidth = 22 * s;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(256 * s, 404 * s);
+          ctx.lineTo(256 * s, 212 * s);
+          ctx.stroke();
+
+          ctx.lineWidth = 11 * s;
+          ctx.beginPath();
+          ctx.moveTo(256 * s, 396 * s);
+          ctx.quadraticCurveTo(222 * s, 408 * s, 194 * s, 412 * s);
+          ctx.moveTo(256 * s, 396 * s);
+          ctx.quadraticCurveTo(290 * s, 408 * s, 318 * s, 412 * s);
+          ctx.stroke();
+
+          // Chioma stratificata verde salvia
+          var foliage = [
+            { x: 256, y: 175, rad: 92, col: '#4E6B53' },
+            { x: 184, y: 224, rad: 74, col: '#5E8264' },
+            { x: 328, y: 224, rad: 74, col: '#4E6B53' },
+            { x: 214, y: 168, rad: 64, col: '#76967B' },
+            { x: 298, y: 172, rad: 62, col: '#658A6B' },
+            { x: 256, y: 126, rad: 56, col: '#76967B' }
+          ];
+          for (var i = 0; i < foliage.length; i++) {
+            var f = foliage[i];
+            ctx.fillStyle = f.col;
+            ctx.beginPath();
+            ctx.arc(f.x * s, f.y * s, f.rad * s, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // Bacche dorate nella chioma
+          var berries = [[224, 152], [286, 146], [198, 216], [312, 214], [256, 186]];
+          ctx.fillStyle = '#E3BF4B';
+          for (var b = 0; b < berries.length; b++) {
+            ctx.beginPath();
+            ctx.arc(berries[b][0] * s, berries[b][1] * s, 7.5 * s, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // Silhouette stilizzata del pettirosso in volo
+          ctx.save();
+          ctx.translate(362 * s, 134 * s);
+          ctx.fillStyle = '#4E6B53';
+          ctx.beginPath();
+          ctx.ellipse(0, 0, 18 * s, 9 * s, -0.25, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#D6723E';
+          ctx.beginPath();
+          ctx.arc(10 * s, 2 * s, 7 * s, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#4E6B53';
+          ctx.lineWidth = 6 * s;
+          ctx.beginPath();
+          ctx.moveTo(-4 * s, -4 * s);
+          ctx.quadraticCurveTo(-18 * s, -22 * s, -30 * s, -12 * s);
+          ctx.stroke();
+          ctx.restore();
+
+          return c.toDataURL('image/png');
+        }
+
+        var png180 = renderSylvaEmblemPng(180);
+        var png512 = renderSylvaEmblemPng(512);
+
+        var appleIcon = document.getElementById('appleTouchIcon');
+        var applePre = document.getElementById('appleTouchIconPrecomposed');
+        var favPng = document.getElementById('faviconPng');
+        if (appleIcon) appleIcon.href = png180;
+        if (applePre) applePre.href = png180;
+        if (favPng) favPng.href = png180;
+
+        var manifest = {
+          name: 'Sylva — Atelier Botanico & Studio',
+          short_name: 'Sylva',
+          start_url: '.',
+          display: 'standalone',
+          background_color: '#F7F5F0',
+          theme_color: '#4E6B53',
+          icons: [
+            { src: png180, sizes: '180x180', type: 'image/png' },
+            { src: png512, sizes: '512x512', type: 'image/png' }
+          ]
+        };
+        var manifestLink = document.getElementById('manifestLink');
+        if (manifestLink) {
+          manifestLink.href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
+        }
+      } catch (e) {}
+    })();
+  </script>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -635,6 +798,9 @@
           <span id="statusBarInfo" class="font-medium">Sylva pronto • Interattività attiva</span>
         </div>
         <div class="flex items-center gap-2">
+          <button type="button" data-action="ios-home-tip" class="px-3 py-1 rounded-xl bg-paper-card hover:bg-sage-100 border border-paper-border text-xs font-semibold text-sage-800 cursor-pointer">
+            📱 Icona Home iPhone
+          </button>
           <button type="button" data-action="test-add-sap" class="px-3 py-1 rounded-xl bg-paper-card hover:bg-sage-100 border border-paper-border text-xs font-semibold text-sage-900 cursor-pointer">
             +25 Semi (Test)
           </button>
@@ -4162,6 +4328,10 @@
             saveState();
             renderAll();
             showToast('+25 Semi di Linfa & +30 XP aggiunti!');
+            break;
+
+          case 'ios-home-tip':
+            showToast('Su iPhone: apri il link GitHub Pages in Safari, tocca Condividi (quadrato con freccia) → Aggiungi alla schermata Home.');
             break;
 
           // Controlli Zen Fullscreen
